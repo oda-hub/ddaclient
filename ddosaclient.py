@@ -9,7 +9,7 @@ class Secret(object):
     @property
     def secret_location(self):
         if 'DDOSA_SECRET' in os.environ:
-            return os.environ['DDOSA_SECREC']
+            return os.environ['DDOSA_SECRET']
         else:
             return os.environ['HOME']+"/.secret-ddosa-client"
 
@@ -20,10 +20,10 @@ class Secret(object):
 
 
 class RemoteDDOSA(object):
-    default_modules=["ddosadm"]
+    default_modules=["ddosa","ddosadm"]
     default_assume=["ddosadm.DataSourceConfig(use_store_files=False)"]
 
-    def __init__(self,service_url=None):
+    def __init__(self,service_url):
         self.service_url=service_url
 
         self.secret=Secret()
@@ -34,6 +34,9 @@ class RemoteDDOSA(object):
 
     @service_url.setter
     def service_url(self,service_url):
+        if service_url is None:
+            raise Exception("service url can not be None!")
+        
         adapter=service_url.split(":")[0]
         if adapter not in ["http"]:
             raise Exception("adapter %s not allowed!"%adapter)
@@ -44,7 +47,7 @@ class RemoteDDOSA(object):
                     params=dict(modules=",".join(self.default_modules+modules),
                                 assume=",".join(self.default_assume+assume)))
 
-    def query(target,modules=[],assume=[]):
+    def query(self,target,modules=[],assume=[]):
         try:
             p=self.prepare_request(target,modules,assume)
             r=requests.get(p['url'],p['params'],auth=self.secret.get_auth())
@@ -63,9 +66,12 @@ class RemoteDDOSA(object):
     def __repr__(self):
         return "[%s: direct %s]"%(self.__class__.__name__,self.service_url)
 
+
+
 class HerdedDDOSA(RemoteDDOSA):
     def __repr__(self):
         return "[%s: herder %s]"%(self.__class__.__name__,self.service_url)
 
     def query(self):
         raise Exception("not implemented!")
+
