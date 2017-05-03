@@ -1,23 +1,23 @@
 from __future__ import print_function
 
 import requests
-import StringIO
-import json
-import logging
+import os
 
-def setup_logger():
-    logger = logging.getLogger('root')
-    FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-    logging.basicConfig(format=FORMAT)
-    logger.setLevel(logging.INFO)
-    return logger
+from simple_logger import log
 
-logger=setup_logger() # global logger, well
+class Secret(object):
+    @property
+    def secret_location(self):
+        if 'DDOSA_SECRET' in os.environ:
+            return os.environ['DDOSA_SECREC']
+        else:
+            return os.environ['HOME']+"/.secret-ddosa-client"
 
-def log(*args, **kwargs):
-    logtype = 'debug' if 'logtype' not in kwargs else kwargs['logtype']
-    sep = ' ' if 'sep' not in kwargs else kwargs['sep']
-    getattr(logger, logtype)(sep.join(str(a) for a in args))
+    def get_auth(self):
+        username="remoteintegral" # keep separate from secrect to cause extra confusion!
+        password=open(self.secret_location).read().strip()
+        return requests.auth.HTTPBasicAuth(username, password)
+
 
 class RemoteDDOSA(object):
     default_modules=["ddosadm"]
@@ -26,12 +26,17 @@ class RemoteDDOSA(object):
     def __init__(self,service_url=None):
         self.service_url=service_url
 
+        self.secret=Secret()
+
     @property
     def service_url(self):
         return self._service_url
 
     @service_url.setter
     def service_url(self,service_url):
+        adapter=service_url.split(":")[0]
+        if adapter not in ["http"]:
+            raise Exception("adapter %s not allowed!"%adapter)
         self._service_url=service_url
 
     def prepare_request(self,target,modules=[],assume=[]):
@@ -42,7 +47,7 @@ class RemoteDDOSA(object):
     def query(target,modules=[],assume=[]):
         try:
             p=self.prepare_request(target,modules,assume)
-            r=requests.get(p['url'],p['params'])
+            r=requests.get(p['url'],p['params'],auth=self.secret.get_auth())
         except Exception as e:
             log("exception in request",e,logtype="error")
             return e
