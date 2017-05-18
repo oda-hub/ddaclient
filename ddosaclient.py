@@ -92,6 +92,9 @@ class RemoteDDOSA(object):
                     params=dict(modules=",".join(self.default_modules+modules),
                                 assume=",".join(self.default_assume+assume)))
 
+    def poke(self):
+        return self.query("poke")
+
     def query(self,target,modules=[],assume=[]):
         try:
             p=self.prepare_request(target,modules,assume)

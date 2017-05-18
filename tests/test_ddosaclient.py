@@ -1,6 +1,7 @@
 import pytest
 import requests
 import os
+import time
 
 import ddosaclient
 
@@ -9,6 +10,38 @@ def test_AutoRemoteDDOSA_construct():
 
 def test_AutoRemoteDDOSA_docker():
     remote=ddosaclient.AutoRemoteDDOSA(config_version="docker_any")
+
+def test_poke():
+    remote=ddosaclient.AutoRemoteDDOSA()
+    remote.poke()
+
+def test_sleep():
+    remote=ddosaclient.AutoRemoteDDOSA()
+    remote.query("sleep:5")
+
+def test_history():
+    remote=ddosaclient.AutoRemoteDDOSA()
+    remote.query("history")
+
+def test_poke_sleeping():
+    remote=ddosaclient.AutoRemoteDDOSA()
+    
+    import threading
+    
+    def worker():
+        remote.query("sleep:10")
+
+    t = threading.Thread(target=worker)
+    t.start()
+
+    for i in range(15):
+        time.sleep(1)
+        try:
+            r=remote.poke()
+            print r
+            break
+        except ddosaclient.WorkerException as e:
+            print e
 
 def test_broken_connection():
     remote=ddosaclient.RemoteDDOSA("http://127.0.1.1:1","")
@@ -43,8 +76,32 @@ def test_image():
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
-    assert os.path.exists(product.skyres)
-    assert os.path.exists(product.skyima)
+
+def test_poke_image():
+    remote=ddosaclient.AutoRemoteDDOSA()
+    
+    import threading
+    
+    def worker():
+        product=remote.query(target="ii_skyimage",
+                             modules=["ddosa","git://ddosadm"],
+                             assume=['ddosa.ScWData(input_scwid="035200230010.001")',
+                                     'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                     'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
+        assert os.path.exists(product.skyres)
+        assert os.path.exists(product.skyima)
+
+    t = threading.Thread(target=worker)
+    t.start()
+
+    for i in range(15):
+        time.sleep(1)
+        try:
+            r=remote.poke()
+            print r
+            break
+        except ddosaclient.WorkerException as e:
+            print e
 
 def test_spectrum():
     remote=ddosaclient.AutoRemoteDDOSA()
