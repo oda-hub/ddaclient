@@ -24,19 +24,9 @@ print("url:",url)
 print("ddcache_root:",ddcache_root_local)
 
 r=dc.RemoteDDOSA(url)\
-        .query(target="Mosaic",
-               modules=["ddosa","git://ddosadm","git://osahk","git://mosaic"],
-               assume=['mosaic.ScWImageList(\
-                                        input_scwlist=ddosa.IDScWList(use_scwid_list=[ \
-                                                    "035200230010.001", \
-                                                    "035200240010.001", \
-                                                    "035200250010.001", \
-                                                    "035200260010.001", \
-                                                    ],\
-                                                    use_version="4scw")\
-                                        )\
-                                        ',
-                       'mosaic.Mosaic(use_pixdivide=4)',
+        .query(target="ii_spectra_extract",
+               modules=["ddosa","git://ddosadm"],
+               assume=['ddosa.ScWData(input_scwid="035200230010.001")',
                        'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                        'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 

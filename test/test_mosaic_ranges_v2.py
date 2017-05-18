@@ -29,9 +29,9 @@ r=dc.RemoteDDOSA(url)\
                assume=['mosaic.ScWImageList(\
                                         input_scwlist=\
                                             rangequery.TimeDirectionScWList(\
-                                                use_coordinates=dict(RA=270,DEC=-30,radius=5),\
+                                                use_coordinates=dict(RA=83,DEC=22,radius=5),\
                                                 use_timespan=dict(T1="2008-04-12T11:11:11",T2="2009-04-12T11:11:11"),\
-                                                use_max_pointings=3) \
+                                                use_max_pointings=5) \
                                         )\
                                         ',
                        'mosaic.Mosaic(use_pixdivide=4)',
