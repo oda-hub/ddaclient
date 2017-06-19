@@ -40,7 +40,15 @@ class DDOSAproduct(object):
 
         print("found result keys:",r.keys())
 
-        data=ast.literal_eval(str(r['data']))
+        try:
+            #data=ast.literal_eval(repr(r['data']))
+            data=r['data']
+        except ValueError:
+            print("failed to interpret data \"",r['data'],"\"")
+            print(r['data'].__class__)
+            print(r['data'].keys())
+            open('tmp_data_dump.json','w').write(repr(r['data']))
+            raise
 
         if data is None:
             raise WorkerException("data is None, the analysis failed")
@@ -104,11 +112,14 @@ class RemoteDDOSA(object):
             raise
 
         try:
-            return DDOSAproduct(response.json(),self.ddcache_root_local)
-        except Exception as e:
+            response_json=response.json()
+            return DDOSAproduct(response_json,self.ddcache_root_local)
+        except WorkerException as e:
+        #except Exception as e:
             log("exception exctacting json:",e)
             log("raw content: ",response.content,logtype="error")
-            raise WorkerException(repr(e)+"\nno json was produced!\nraw output:\n\n"+response.content)
+            open("tmp_response_content.txt","w").write(response.content)
+            raise WorkerException(repr(e)+"\nno json was produced!",response.content)
             
 
 
