@@ -73,7 +73,7 @@ class DDOSAproduct(object):
 
 class RemoteDDOSA(object):
     default_modules=["ddosa","ddosadm"]
-    default_assume=["ddosadm.DataSourceConfig(use_store_files=False)"]
+    default_assume=["ddosadm.DataSourceConfig(use_store_files=False)"] if not ('SCWDATA_SOURCE_MODULE' in os.environ and os.environ['SCWDATA_SOURCE_MODULE']=='ddosadm') else []
 
     def __init__(self,service_url,ddcache_root_local):
         self.service_url=service_url

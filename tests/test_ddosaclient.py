@@ -5,6 +5,10 @@ import time
 
 import ddosaclient
 
+scwsource_module="ddosa"
+if 'SCWDATA_SOURCE_MODULE' in os.environ:
+    scwsource_module=os.environ['SCWDATA_SOURCE_MODULE']
+
 def test_AutoRemoteDDOSA_construct():
     remote=ddosaclient.AutoRemoteDDOSA()
 
@@ -17,7 +21,7 @@ def test_broken_connection():
     with pytest.raises(requests.ConnectionError):
         product=remote.query(target="ii_spectra_extract",
                              modules=["ddosa","git://ddosadm"],
-                             assume=['ddosa.ScWData(input_scwid="035200230010.001")',
+                             assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
                                      'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                      'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
@@ -29,7 +33,7 @@ def test_bad_request():
     with pytest.raises(ddosaclient.WorkerException):
         product=remote.query(target="Undefined",
                              modules=["ddosa","git://ddosadm"],
-                             assume=['ddosa.ScWData(input_scwid="035200250010.001")',
+                             assume=[scwsource_module+'.ScWData(input_scwid="035200250010.001")',
                                      'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                      'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
@@ -40,7 +44,7 @@ def test_image():
 
     product=remote.query(target="ii_skyimage",
                          modules=["ddosa","git://ddosadm"],
-                         assume=['ddosa.ScWData(input_scwid="035200230010.001")',
+                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
@@ -50,7 +54,7 @@ def test_spectrum():
 
     product=remote.query(target="ii_spectra_extract",
                          modules=["ddosa","git://ddosadm"],
-                         assume=['ddosa.ScWData(input_scwid="035200230010.001")',
+                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
