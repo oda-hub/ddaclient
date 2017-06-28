@@ -37,6 +37,27 @@ def test_bad_request():
                                      'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                      'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
+def test_cat():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    product=remote.query(target="CatExtract",
+                         modules=["ddosa","git://ddosadm"],
+                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                 'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
+
+    print("product:",product)
+
+def test_gti():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    product=remote.query(target="ibis_gti",
+                         modules=["ddosa","git://ddosadm"],
+                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                 'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
+
+    print("product:",product)
 
 
 def test_image():

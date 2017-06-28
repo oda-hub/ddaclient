@@ -96,9 +96,17 @@ class RemoteDDOSA(object):
         self._service_url=service_url
 
     def prepare_request(self,target,modules=[],assume=[]):
-        return dict(url=self.service_url+"/api/v1.0/"+target,
+        args=dict(url=self.service_url+"/api/v1.0/"+target,
                     params=dict(modules=",".join(self.default_modules+modules),
                                 assume=",".join(self.default_assume+assume)))
+
+        
+        #if 'OPENID_TOKEN' is os.environ:
+        #    print("found token")
+        args['params']['token']=os.environ['OPENID_TOKEN']
+
+        return args
+
 
     def poke(self):
         return self.query("poke")
