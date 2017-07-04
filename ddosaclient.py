@@ -9,7 +9,11 @@ import json
 
 from simple_logger import log
 
-import discover_docker
+try:
+    import discover_docker
+    docker_available=True
+except ImportError:
+    docker_available=False
 
 class WorkerException(Exception):
     pass
@@ -101,9 +105,8 @@ class RemoteDDOSA(object):
                                 assume=",".join(self.default_assume+assume)))
 
         
-        #if 'OPENID_TOKEN' is os.environ:
-        #    print("found token")
-        args['params']['token']=os.environ['OPENID_TOKEN']
+        if 'OPENID_TOKEN' in os.environ:
+            args['params']['token']=os.environ['OPENID_TOKEN']
 
         return args
 
@@ -135,37 +138,70 @@ class RemoteDDOSA(object):
         return "[%s: direct %s]"%(self.__class__.__name__,self.service_url)
 
 class AutoRemoteDDOSA(RemoteDDOSA):
-    def __init__(self,config_version=None):
-        if config_version=="docker_any":
-            c=discover_docker.DDOSAWorkerContainer()
 
-            url=c.url
-            ddcache_root_local=c.ddcache_root
+    def from_docker(self,config_version):
+        if config_version == "docker_any" and docker_available:
+            c = discover_docker.DDOSAWorkerContainer()
+
+            url = c.url
+            ddcache_root_local = c.ddcache_root
             print("managed to read from docker:")
-        elif 'DDOSA_WORKER_URL' in os.environ:
-            url=os.environ['DDOSA_WORKER_URL']
-            ddcache_root_local=""
-        else:
-            if config_version is None:
-                if 'DDOSA_WORKER_VERSION' in os.environ:
-                    config_version=os.environ['DDOSA_WORKER_VERSION']
-                else:
-                    config_version="devel"
+            return url,ddcache_root_local
+        raise Exception("not possible to access docker")
 
-            print("from config:",config_version)
+    def from_env(self,config_version):
+        url = os.environ['DDOSA_WORKER_URL']
+        ddcache_root_local = ""
+        return url, ddcache_root_local
 
-            if config_version=="":
-                config_suffix=''
+    def from_config(self,config_version):
+        if config_version is None:
+            if 'DDOSA_WORKER_VERSION' in os.environ:
+                config_version = os.environ['DDOSA_WORKER_VERSION']
             else:
-                config_suffix='_'+config_version
+                config_version = "devel"
 
-            config_fn='/home/isdc/savchenk/etc/ddosa-docker/config%s.py'%config_suffix
-            print(":",config_fn)
+        print("from config:", config_version)
 
-            ddosa_config = imp.load_source('ddosa_config', config_fn)
+        if config_version == "":
+            config_suffix = ''
+        else:
+            config_suffix = '_' + config_version
 
-            ddcache_root_local=ddosa_config.ddcache_root_local
-            url=ddosa_config.url
+        config_fn = '/home/isdc/savchenk/etc/ddosa-docker/config%s.py' % config_suffix
+        print(":", config_fn)
+
+        ddosa_config = imp.load_source('ddosa_config', config_fn)
+
+        ddcache_root_local = ddosa_config.ddcache_root_local
+        url = ddosa_config.url
+
+        return url, ddcache_root_local
+
+    def discovery_methods(self):
+        return [
+                    'from_docker',
+                    'from_env',
+                    'from_config',
+            ]
+
+
+    def __init__(self,config_version=None):
+
+        methods_tried=[]
+        result=None
+        for method in self.discovery_methods():
+
+            try:
+                result=getattr(self,method)(config_version)
+            except Exception as e:
+                methods_tried.append((method,e))
+
+        if result is None:
+            raise Exception("all docker discovery methods failed, tried "+repr(methods_tried))
+
+        url, ddcache_root_local = result
+
 
         print("url:",url)
         print("ddcache_root:",ddcache_root_local)
