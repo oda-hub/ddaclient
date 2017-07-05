@@ -117,6 +117,8 @@ class RemoteDDOSA(object):
     def query(self,target,modules=[],assume=[]):
         try:
             p=self.prepare_request(target,modules,assume)
+            import urllib
+            log("request to pipeline:",p['url']+"/"+urllib.urlencode(p['params']))
             response=requests.get(p['url'],p['params'],auth=self.secret.get_auth())
         except Exception as e:
             log("exception in request",e,logtype="error")
