@@ -2,6 +2,8 @@ from __future__ import print_function
 
 import requests
 import os
+import urllib
+
 
 import imp
 import ast
@@ -100,6 +102,10 @@ class RemoteDDOSA(object):
         self._service_url=service_url
 
     def prepare_request(self,target,modules=[],assume=[]):
+        log("modules", ",".join(modules))
+        log("assume", ",".join(assume))
+        log("service url:",self.service_url)
+        log("target:", target)
         args=dict(url=self.service_url+"/api/v1.0/"+target,
                     params=dict(modules=",".join(self.default_modules+modules),
                                 assume=",".join(self.default_assume+assume)))
@@ -117,7 +123,7 @@ class RemoteDDOSA(object):
     def query(self,target,modules=[],assume=[]):
         try:
             p=self.prepare_request(target,modules,assume)
-            import urllib
+            log("request to pipeline:",p)
             log("request to pipeline:",p['url']+"/"+urllib.urlencode(p['params']))
             response=requests.get(p['url'],p['params'],auth=self.secret.get_auth())
         except Exception as e:

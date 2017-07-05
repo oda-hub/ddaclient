@@ -129,3 +129,33 @@ def test_sum_spectrum():
     
     assert fits.open(product.isgri_sum_Crab)[1].header['EXPOSURE']>3000
     #assert os.path.exists(product.spectrum)
+
+
+def test_sum_spectrum_extract_all():
+    remote = ddosaclient.AutoRemoteDDOSA()
+
+    try:
+        product = remote.query(target="ISGRISpectraSum",
+                               modules=["ddosa", "git://ddosadm", "git://useresponse", "git://process_isgri_spectra",
+                                        "git://rangequery"],
+                               assume=['process_isgri_spectra.ScWSpectraList(\
+                      input_scwlist=\
+                      rangequery.TimeDirectionScWList(\
+                          use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                          use_timespan=dict(T1="2008-04-12T11:11:11",T2="2009-04-12T11:11:11"),\
+                          use_max_pointings=3 \
+                          )\
+                      )\
+                  ',
+                                       'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                       'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")',
+                                       'process_isgri_spectra.ISGRISpectraSum(use_extract_all=True)'])
+    except ddosaclient.WorkerException as e:
+        if len(e.args) > 2:
+            print
+            e[2]
+        raise
+
+    import astropy.io.fits as fits
+
+    assert fits.open(product.isgri_sum_Crab)[1].header['EXPOSURE'] > 3000
