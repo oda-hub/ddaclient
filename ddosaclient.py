@@ -151,7 +151,7 @@ class AutoRemoteDDOSA(RemoteDDOSA):
 
     def from_env(self,config_version):
         url = os.environ['DDOSA_WORKER_URL']
-        ddcache_root_local = ""
+        ddcache_root_local = os.environ['INTEGRAL_DDCACHE_ROOT']
         return url, ddcache_root_local
 
     def from_config(self,config_version):
