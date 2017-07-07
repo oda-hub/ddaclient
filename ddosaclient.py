@@ -27,10 +27,11 @@ class WorkerException(Exception):
         return self.__class__.__name__+": "+self.comment
 
     def display(self):
+        log(repr(self))
         try:
-            print(json.loads(self.content)['result']['output'])
+            log(json.loads(self.content)['result']['output'])
         except Exception as e:
-            print("detailed output display not easy")
+            log("detailed output display not easy")
 
 
 class Secret(object):
