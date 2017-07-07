@@ -77,7 +77,9 @@ def test_spectrum():
                          modules=["ddosa","git://ddosadm"],
                          assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
-                                 'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
+                                 'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
+                                 'ddosa.CatForLC(use_minsig=3)',
+                                ])
 
     assert os.path.exists(product.spectrum)
 

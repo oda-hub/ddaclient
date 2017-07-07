@@ -18,7 +18,20 @@ except ImportError:
     docker_available=False
 
 class WorkerException(Exception):
-    pass
+    def __init__(self,comment,content=None,product_exception=None):
+        self.comment=comment
+        self.content=content
+        self.product_exception=product_exception
+
+    def __repr__(self):
+        return self.__class__.__name__+": "+self.comment
+
+    def display(self):
+        try:
+            print(json.loads(self.content)['result']['output'])
+        except Exception as e:
+            print("detailed output display not easy")
+
 
 class Secret(object):
     @property
@@ -78,7 +91,7 @@ class DDOSAproduct(object):
 
 
 class RemoteDDOSA(object):
-    default_modules=["ddosa","ddosadm"]
+    default_modules=["git://ddosa","ddosadm"]
     default_assume=["ddosadm.DataSourceConfig(use_store_files=False)"] if not ('SCWDATA_SOURCE_MODULE' in os.environ and os.environ['SCWDATA_SOURCE_MODULE']=='ddosadm') else []
 
     def __init__(self,service_url,ddcache_root_local):
@@ -138,7 +151,7 @@ class RemoteDDOSA(object):
             log("exception exctacting json:",e)
             log("raw content: ",response.content,logtype="error")
             open("tmp_response_content.txt","w").write(response.content)
-            raise WorkerException(repr(e)+"\nno json was produced!",response.content)
+            raise WorkerException("no json was produced!",content=response.content,product_exception=e)
             
 
 
