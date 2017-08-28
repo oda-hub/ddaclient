@@ -115,14 +115,17 @@ class RemoteDDOSA(object):
             raise Exception("adapter %s not allowed!"%adapter)
         self._service_url=service_url
 
-    def prepare_request(self,target,modules=[],assume=[]):
+    def prepare_request(self,target,modules=[],assume=[],inject=[]):
         log("modules", ",".join(modules))
         log("assume", ",".join(assume))
         log("service url:",self.service_url)
         log("target:", target)
+        log("inject:",inject)
         args=dict(url=self.service_url+"/api/v1.0/"+target,
                     params=dict(modules=",".join(self.default_modules+modules),
-                                assume=",".join(self.default_assume+assume)))
+                                assume=",".join(self.default_assume+assume),
+                                inject=json.dumps(inject),
+                                ))
 
         
         if 'OPENID_TOKEN' in os.environ:
@@ -134,9 +137,9 @@ class RemoteDDOSA(object):
     def poke(self):
         return self.query("poke")
 
-    def query(self,target,modules=[],assume=[]):
+    def query(self,target,modules=[],assume=[],inject=[]):
         try:
-            p=self.prepare_request(target,modules,assume)
+            p=self.prepare_request(target,modules,assume,inject)
             log("request to pipeline:",p)
             log("request to pipeline:",p['url']+"/"+urllib.urlencode(p['params']))
             response=requests.get(p['url'],p['params'],auth=self.secret.get_auth())

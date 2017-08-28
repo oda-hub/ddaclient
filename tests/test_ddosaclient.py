@@ -2,6 +2,7 @@ import pytest
 import requests
 import os
 import time
+import astropy.io.fits as fits
 
 import ddosaclient
 
@@ -47,6 +48,40 @@ def test_cat():
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
     print("product:",product)
+
+def test_cat_injection():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    cat=['SourceCatalog',
+         {
+            "catalog": [
+                    {
+                        "DEC": 23,
+                        "NAME": "TEST_SOURCE",
+                        "RA": 83
+                    },
+                    {
+                        "DEC": 13,
+                        "NAME": "TEST_SOURCE2",
+                        "RA": 83
+                    }
+                ],
+            "version": "v1"
+        }
+    ]
+
+    product=remote.query(target="CatForImage",
+                         modules=["ddosa","git://ddosadm","git://gencat"],
+                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                 'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+                         inject=[cat])
+
+    print("product:",product)
+
+    d=fits.open(product.cat)[1].data
+    assert cat[1]['catalog'][0]['NAME'] in d['NAME']
+
 
 def test_gti():
     remote=ddosaclient.AutoRemoteDDOSA()
