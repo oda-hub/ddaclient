@@ -83,6 +83,41 @@ def test_cat_injection():
     assert cat[1]['catalog'][0]['NAME'] in d['NAME']
 
 
+def test_cat_injection_image():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    cat=['SourceCatalog',
+         {
+            "catalog": [
+                    {
+                        "DEC": 23,
+                        "NAME": "TEST_SOURCE",
+                        "RA": 83
+                    },
+                    {
+                        "DEC": 13,
+                        "NAME": "TEST_SOURCE2",
+                        "RA": 83
+                    }
+                ],
+            "version": "v1"
+        }
+    ]
+
+    product=remote.query(target="ii_skyimage",
+                         modules=["ddosa","git://ddosadm","git://gencat"],
+                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                 'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")',
+                                 'ddosa.ii_skyimage(input_cat=gencat.CatForImage)'],
+                         inject=[cat])
+
+    print("product:",product)
+
+    d=fits.open(product.skyres)[2].data
+    assert cat[1]['catalog'][0]['NAME'] in d['NAME']
+
+
 def test_gti():
     remote=ddosaclient.AutoRemoteDDOSA()
 
