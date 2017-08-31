@@ -100,7 +100,8 @@ def test_cat_injection_image():
                         "RA": 83
                     }
                 ],
-            "version": "v1"
+            "version": "v0",
+            "cached":False,
         }
     ]
 
@@ -117,6 +118,92 @@ def test_cat_injection_image():
     d=fits.open(product.skyres)[2].data
     assert cat[1]['catalog'][0]['NAME'] in d['NAME']
 
+def test_cat_injection_spectra():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    cat=['SourceCatalog',
+         {
+            "catalog": [
+                    {
+                        "DEC": 23,
+                        "NAME": "TEST_SOURCE",
+                        "RA": 83
+                    },
+                    {
+                        "DEC": 13,
+                        "NAME": "TEST_SOURCE2",
+                        "RA": 83
+                    }
+                ],
+            "version": "v1"
+        }
+    ]
+
+
+    product=remote.query(target="ii_spectra_extract",
+                         modules=["ddosa","git://ddosadm","git://gencat"],
+                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                 'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
+                                 'ddosa.ii_spectra_extract(input_cat=gencat.CatForSpectra)',
+                                ],
+                         inject = [cat])
+
+    assert os.path.exists(product.spectrum)
+
+    print("product:",product)
+
+    assert hasattr(product, 'spectrum')
+    d = fits.open(product.spectrum)
+
+    assert len(d[1].data) == 2 + 1
+    assert len(d[2:]) == 2 + 1
+
+    assert d[2].header['NAME'] == cat[1]['catalog'][0]['NAME']
+
+
+def test_cat_injection_lc():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    cat=['SourceCatalog',
+         {
+            "catalog": [
+                    {
+                        "DEC": 23,
+                        "NAME": "TEST_SOURCE",
+                        "RA": 83
+                    },
+                    {
+                        "DEC": 13,
+                        "NAME": "TEST_SOURCE2",
+                        "RA": 83
+                    }
+                ],
+            "version": "v1"
+        }
+    ]
+
+
+    product=remote.query(target="ii_lc_extract",
+                         modules=["ddosa","git://ddosadm","git://gencat"],
+                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                 'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
+                                 'ddosa.ii_lc_extract(input_cat=gencat.CatForSpectra)',
+                                ],
+                         inject = [cat])
+
+    assert os.path.exists(product.lightcurve)
+
+    print("product:",product)
+
+    assert hasattr(product, 'lightcurve')
+    d = fits.open(product.lightcurve)
+
+    assert len(d[1].data) == 2
+    assert len(d[2:]) == 2
+
+    assert d[2].header['NAME'] == cat[1]['catalog'][0]['NAME']
 
 def test_gti():
     remote=ddosaclient.AutoRemoteDDOSA()

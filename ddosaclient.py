@@ -155,6 +155,11 @@ class RemoteDDOSA(object):
             log("exception exctacting json:",e)
             log("raw content: ",response.content,logtype="error")
             open("tmp_response_content.txt","w").write(response.content)
+            if "result" in response.json():
+                if "output" in response.json()['result']:
+                    open("tmp_response_content_result_output.txt", "w").write(response.json()['result']['output'])
+
+            open("tmp_response_content.txt", "w").write(response.content)
             raise WorkerException("no json was produced!",content=response.content,product_exception=e)
             
 
