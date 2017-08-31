@@ -261,6 +261,70 @@ def test_mosaic():
 
     assert os.path.exists(product.skyima)
 
+def test_summary_injection():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    cat=['SourceCatalog',
+             {
+                "catalog": [
+                        {
+                            "DEC": 23,
+                            "NAME": "TEST_SOURCE",
+                            "RA": 83
+                        },
+                        {
+                            "DEC": 13,
+                            "NAME": "TEST_SOURCE2",
+                            "RA": 83
+                        }
+                    ],
+                "version": "v1"
+            }
+        ]
+
+
+def test_mosaic_injection():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+
+    cat=['SourceCatalog',
+         {
+            "catalog": [
+                    {
+                        "DEC": 23,
+                        "NAME": "TEST_SOURCE",
+                        "RA": 83
+                    },
+                    {
+                        "DEC": 13,
+                        "NAME": "TEST_SOURCE2",
+                        "RA": 83
+                    }
+                ],
+            "version": "v1"
+        }
+    ]
+
+
+    product=remote.query(target="Mosaic",
+              modules=["git://ddosa","git://ddosadm","git://osahk","git://mosaic",'git://rangequery','git://gencat'],
+              assume=['mosaic.ScWImageList(\
+                  input_scwlist=\
+                  rangequery.TimeDirectionScWList(\
+                      use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                      use_timespan=dict(T1="2008-04-12T11:11:11",T2="2009-04-12T11:11:11"),\
+                      use_max_pointings=2 \
+                      )\
+                  )\
+              ',
+              'mosaic.Mosaic(use_pixdivide=4)',
+              'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+              'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+               inject=[cat])
+
+
+    assert os.path.exists(product.skyima)
+
 def test_sum_spectrum():
     remote=ddosaclient.AutoRemoteDDOSA()
 
