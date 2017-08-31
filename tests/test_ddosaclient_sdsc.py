@@ -14,7 +14,7 @@ def test_cat():
     remote=ddosaclient.AutoRemoteDDOSA()
 
     req=(remote.prepare_request("CatExtract"))
-    print req
+    print(req)
 
     assert 'token' in req['params']
 
