@@ -382,3 +382,19 @@ def test_sum_spectrum_extract_all():
     import astropy.io.fits as fits
 
     assert fits.open(product.isgri_sum_Crab)[1].header['EXPOSURE'] > 3000
+
+def test_fit_one():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    product = remote.query(target="FitSourcePowerlaw",
+                           modules=["ddosa", "git://ddosadm","git://useresponse", "git://process_isgri_spectra",
+                                    "git://ddjemx","git://fit"],
+                           assume=[scwsource_module + '.ScWData(input_scwid="066500330010.001")',
+                                   'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                   'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
+                                   'ddosa.CatForLC(use_minsig=3)',
+                                   'fit.FitSourcePowerlaw(use_sname="Crab")'
+                                   ])
+
+
+    print("product:", product)
