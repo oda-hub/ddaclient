@@ -118,6 +118,33 @@ def test_cat_injection_image():
     d=fits.open(product.skyres)[2].data
     assert cat[1]['catalog'][0]['NAME'] in d['NAME']
 
+
+def test_cat_injection_image_empty_cat():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    cat=['SourceCatalog',
+         {
+            "catalog": [
+                ],
+            "version": "v0_empty",
+             ""
+            "cached":False,
+        }
+    ]
+
+    product=remote.query(target="ii_skyimage",
+                         modules=["ddosa","git://ddosadm"],
+                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                 'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")',
+                                 ],
+                         inject=[])
+
+    print("product:",product)
+
+    d=fits.open(product.skyres)[2].data
+    #assert len([k[] for k in d])==0
+
 def test_cat_injection_spectra():
     remote=ddosaclient.AutoRemoteDDOSA()
 
@@ -239,6 +266,22 @@ def test_spectrum():
                                 ])
 
     assert os.path.exists(product.spectrum)
+
+
+def test_spectrum_show_standard_catalog():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    product=remote.query(target="CatForSpectraFromImaging",
+                         modules=["ddosa","git://ddosadm"],
+                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                 'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
+                                 'ddosa.CatForLC(use_minsig=3)',
+                                 'ddosa.CatForSpectraFromImaging(use_cached=True)'
+                                ])
+
+    assert os.path.exists(product.cat)
+
 
 def test_mosaic():
     remote=ddosaclient.AutoRemoteDDOSA()
