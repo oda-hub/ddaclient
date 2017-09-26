@@ -56,17 +56,17 @@ class DDOSAproduct(object):
     def interpret_ddosa_worker_response(self,r):
         self.raw_response=r
 
-        print(self,r["result"])
+        log(self,r["result"])
 
-        print("found result keys:",r.keys())
+        log("found result keys:",r.keys())
 
         try:
             #data=ast.literal_eval(repr(r['data']))
             data=r['data']
         except ValueError:
-            print("failed to interpret data \"",r['data'],"\"")
-            print(r['data'].__class__)
-            print(r['data'].keys())
+            log("failed to interpret data \"",r['data'],"\"")
+            log(r['data'].__class__)
+            log(r['data'].keys())
             open('tmp_data_dump.json','w').write(repr(r['data']))
             raise
 
@@ -74,18 +74,18 @@ class DDOSAproduct(object):
             raise WorkerException("data is None, the analysis failed")
 
         json.dump(data,open("data.json","w"), sort_keys=True, indent=4, separators=(',', ': '))
-        print("jsonifiable data dumped to data.json")
+        log("jsonifiable data dumped to data.json")
 
-        print("cached object in",r['cached_path'])
+        log("cached object in",r['cached_path'])
 
         for k,v in data.items():
-            print("setting attribute",k)
+            log("setting attribute",k)
             setattr(self,k,v)
 
             try:
                 if v[0]=="DataFile":
                     local_fn=(r['cached_path'][0].replace("data/ddcache",self.ddcache_root_local)+"/"+v[1]).replace("//","/")+".gz"
-                    print("data file attached:",k,local_fn)
+                    log("data file attached:",k,local_fn)
                     setattr(self,k,local_fn)
             except Exception as e:
                 pass
@@ -175,7 +175,7 @@ class AutoRemoteDDOSA(RemoteDDOSA):
 
             url = c.url
             ddcache_root_local = c.ddcache_root
-            print("managed to read from docker:")
+            log("managed to read from docker:")
             return url,ddcache_root_local
         raise Exception("not possible to access docker")
 
@@ -191,7 +191,7 @@ class AutoRemoteDDOSA(RemoteDDOSA):
             else:
                 config_version = "devel"
 
-        print("from config:", config_version)
+        log("from config:", config_version)
 
         if config_version == "":
             config_suffix = ''
@@ -199,7 +199,7 @@ class AutoRemoteDDOSA(RemoteDDOSA):
             config_suffix = '_' + config_version
 
         config_fn = '/home/isdc/savchenk/etc/ddosa-docker/config%s.py' % config_suffix
-        print(":", config_fn)
+        log(":", config_fn)
 
         ddosa_config = imp.load_source('ddosa_config', config_fn)
 
@@ -233,8 +233,8 @@ class AutoRemoteDDOSA(RemoteDDOSA):
         url, ddcache_root_local = result
 
 
-        print("url:",url)
-        print("ddcache_root:",ddcache_root_local)
+        log("url:",url)
+        log("ddcache_root:",ddcache_root_local)
 
         super(AutoRemoteDDOSA,self).__init__(url,ddcache_root_local)
 
