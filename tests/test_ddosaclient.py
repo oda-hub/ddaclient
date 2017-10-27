@@ -26,6 +26,19 @@ def test_broken_connection():
                                      'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                      'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
+def test_failing_request():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    #with pytest.raises(requests.ConnectionError):
+
+    with pytest.raises(ddosaclient.WorkerException):
+        product=remote.query(target="FailingMedia",
+                             modules=["ddosa","git://ddosadm"],
+                             assume=[scwsource_module+'.ScWData(input_scwid="035200250010.001")',
+                                     'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                     'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
+
+
 def test_bad_request():
     remote=ddosaclient.AutoRemoteDDOSA()
 
@@ -37,6 +50,28 @@ def test_bad_request():
                              assume=[scwsource_module+'.ScWData(input_scwid="035200250010.001")',
                                      'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                      'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
+
+def test_graph_exception():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    product=remote.query(target="CatExtract",
+                         modules=["ddosa","git://ddosadm"],
+                         assume=['ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                 'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
+
+    print("product:",product)
+
+
+def test_cat_exception():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    product=remote.query(target="CatExtract",
+                         modules=["git://ddosa","git://ddosadm"],
+                         assume=[scwsource_module+'.ScWData(input_scwid="935200230010.001")',
+                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                 'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
+
+    print("product:",product)
 
 def test_cat():
     remote=ddosaclient.AutoRemoteDDOSA()
@@ -408,7 +443,7 @@ def test_sum_spectrum():
                   'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
     except ddosaclient.WorkerException as e:
         if len(e.args)>2:
-            print e[2]
+            print(e[2])
         raise
 
     import astropy.io.fits as fits

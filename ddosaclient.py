@@ -17,6 +17,9 @@ try:
 except ImportError:
     docker_available=False
 
+class AnalysisException(Exception):
+    pass
+
 class WorkerException(Exception):
     def __init__(self,comment,content=None,product_exception=None):
         self.comment=comment
@@ -70,8 +73,11 @@ class DDOSAproduct(object):
             open('tmp_data_dump.json','w').write(repr(r['data']))
             raise
 
+        if r['exceptions']!=[]:
+            raise AnalysisException("found unhandled analysis exceptions", r['exceptions'])
+
         if data is None:
-            raise WorkerException("data is None, the analysis failed")
+            raise WorkerException("data is None, the analysis failed unexclicably")
 
         json.dump(data,open("data.json","w"), sort_keys=True, indent=4, separators=(',', ': '))
         log("jsonifiable data dumped to data.json")
@@ -89,6 +95,10 @@ class DDOSAproduct(object):
                     setattr(self,k,local_fn)
             except Exception as e:
                 pass
+
+        if 'analysis_exceptions' in data and data['analysis_exceptions']!=[]:
+            raise AnalysisException("found analysis exceptions",data['analysis_exceptions'])
+
 
 
 class RemoteDDOSA(object):
@@ -210,7 +220,6 @@ class AutoRemoteDDOSA(RemoteDDOSA):
 
     def discovery_methods(self):
         return [
-                    'from_docker',
                     'from_env',
                     'from_config',
             ]
