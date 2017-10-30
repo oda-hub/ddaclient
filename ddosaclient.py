@@ -73,7 +73,7 @@ class DDOSAproduct(object):
             open('tmp_data_dump.json','w').write(repr(r['data']))
             raise
 
-        if r['exceptions']!=[]:
+        if r['exceptions']!=[] and r['exceptions']!='' and r['exceptions'] is not None:
             raise AnalysisException("found unhandled analysis exceptions", r['exceptions'])
 
         if data is None:
