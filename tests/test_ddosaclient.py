@@ -16,61 +16,6 @@ def test_AutoRemoteDDOSA_construct():
 #def test_AutoRemoteDDOSA_docker():
 #    remote=ddosaclient.AutoRemoteDDOSA(config_version="docker_any")
 
-def test_broken_connection():
-    remote=ddosaclient.RemoteDDOSA("http://127.0.1.1:1","")
-
-    with pytest.raises(requests.ConnectionError):
-        product=remote.query(target="ii_spectra_extract",
-                             modules=["ddosa","git://ddosadm"],
-                             assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
-                                     'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
-                                     'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
-
-def test_failing_request():
-    remote=ddosaclient.AutoRemoteDDOSA()
-
-    #with pytest.raises(requests.ConnectionError):
-
-    with pytest.raises(ddosaclient.AnalysisException):
-        product=remote.query(target="FailingMedia",
-                             modules=["ddosa","git://ddosadm"],
-                             assume=[scwsource_module+'.ScWData(input_scwid="035200250010.001")',
-                                     'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
-                                     'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
-
-
-def test_bad_request():
-    remote=ddosaclient.AutoRemoteDDOSA()
-
-    #with pytest.raises(requests.ConnectionError):
-
-    with pytest.raises(ddosaclient.AnalysisException):
-        product=remote.query(target="Undefined",
-                             modules=["ddosa","git://ddosadm"],
-                             assume=[scwsource_module+'.ScWData(input_scwid="035200250010.001")',
-                                     'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
-                                     'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
-
-def test_graph_exception():
-    remote=ddosaclient.AutoRemoteDDOSA()
-
-    with pytest.raises(ddosaclient.AnalysisException):
-        product=remote.query(target="CatExtract",
-                         modules=["ddosa","git://ddosadm"],
-                         assume=['ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
-                                 'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
-
-
-
-def test_cat_exception():
-    remote=ddosaclient.AutoRemoteDDOSA()
-
-    with pytest.raises(ddosaclient.AnalysisException):
-        product=remote.query(target="CatExtract",
-                         modules=["git://ddosa","git://ddosadm"],
-                         assume=[scwsource_module+'.ScWData(input_scwid="935200230010.001")',
-                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
-                                 'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
 
 def test_cat():

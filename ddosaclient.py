@@ -10,6 +10,7 @@ import ast
 import json
 
 from simple_logger import log
+import re
 
 try:
     import discover_docker
@@ -18,16 +19,47 @@ except ImportError:
     docker_available=False
 
 class AnalysisException(Exception):
-    pass
+    @classmethod
+    def from_ddosa_analysis_exceptions(cls,analysis_exceptions):
+        obj=cls("found analysis exceptions", analysis_exceptions)
+        obj.exceptions=[]
+        for node_exception in analysis_exceptions:
+            node,exception=re.match("\('(.*?)',(.*)\)",node_exception).groups()
+            exception=exception.strip()
+
+            obj.exceptions.append(dict(node=node,exception=exception,exception_kind="handled"))
+        return obj
+
+    @classmethod
+    def from_ddosa_unhandled_exception(cls, unhandled_exception):
+        obj = cls("found unhandled analysis exceptions", unhandled_exception)
+        obj.exceptions = [dict([('kind',"unhandled")]+unhandled_exception.items())]
+        return obj
+
+    @classmethod
+    def from_graph_exception(cls, graph_exception):
+        obj = cls("found graph exception", graph_exception)
+        obj.exceptions = [graph_exception]
+        return obj
+
+    def __repr__(self):
+        r=super(AnalysisException,self)
+        r+="\n\nembedded exceptions"
+        for exception in self.exceptions:
+            r+="in node %s: %s"(exception['node'],exception['exception'])
+        return r
 
 class WorkerException(Exception):
-    def __init__(self,comment,content=None,product_exception=None):
+    def __init__(self,comment,content=None,product_exception=None,worker_output=None):
         self.comment=comment
         self.content=content
         self.product_exception=product_exception
+        self.worker_output=worker_output
 
     def __repr__(self):
-        return self.__class__.__name__+": "+self.comment
+        r=self.__class__.__name__+": "+self.comment
+        if self.worker_output:
+            r+="\n\nWorker output:\n"+self.worker_output
 
     def display(self):
         log(repr(self))
@@ -74,7 +106,7 @@ class DDOSAproduct(object):
             raise
 
         if r['exceptions']!=[] and r['exceptions']!='' and r['exceptions'] is not None:
-            raise AnalysisException("found unhandled analysis exceptions", r['exceptions'])
+            raise AnalysisException.from_ddosa_unhandled_exception(r['exceptions'])
 
         if data is None:
             raise WorkerException("data is None, the analysis failed unexclicably")
@@ -97,7 +129,7 @@ class DDOSAproduct(object):
                 pass
 
         if 'analysis_exceptions' in data and data['analysis_exceptions']!=[]:
-            raise AnalysisException("found analysis exceptions",data['analysis_exceptions'])
+            raise AnalysisException.from_ddosa_analysis_exceptions(data['analysis_exceptions'])
 
 
 
@@ -165,12 +197,14 @@ class RemoteDDOSA(object):
             log("exception exctacting json:",e)
             log("raw content: ",response.content,logtype="error")
             open("tmp_response_content.txt","w").write(response.content)
+            worker_output=None
             if "result" in response.json():
                 if "output" in response.json()['result']:
-                    open("tmp_response_content_result_output.txt", "w").write(response.json()['result']['output'])
+                    worker_output=response.json()['result']['output']
+                    open("tmp_response_content_result_output.txt", "w").write(worker_output)
 
             open("tmp_response_content.txt", "w").write(response.content)
-            raise WorkerException("no json was produced!",content=response.content,product_exception=e)
+            raise WorkerException("no json was produced!",content=response.content,worker_output=worker_output,product_exception=e)
             
 
 
