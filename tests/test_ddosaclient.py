@@ -420,3 +420,34 @@ def test_fit_one():
 
 
     print("product:", product)
+
+def test_report_scwlist():
+    remote = ddosaclient.AutoRemoteDDOSA()
+
+    try:
+        product = remote.query(target="ReportScWList",
+                               modules=["ddosa", "git://ddosadm",
+                                        "git://rangequery"],
+                               assume=['rangequery.ReportScWList(\
+                      input_scwlist=\
+                      rangequery.TimeDirectionScWList(\
+                          use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                          use_timespan=dict(T1="2008-04-12T11:11:11",T2="2009-04-12T11:11:11"),\
+                          use_max_pointings=3 \
+                          )\
+                      )'])
+
+    except ddosaclient.WorkerException as e:
+        if len(e.args) > 2:
+            print
+            e[2]
+        raise
+
+    assert hasattr(product,'scwidlist')
+
+    print(product.scwidlist)
+
+    assert len(product.scwidlist)==3
+
+    assert product.scwidlist==[u'072700080010.001', u'072700090010.001', u'072700100010.001']
+
