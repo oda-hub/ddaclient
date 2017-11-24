@@ -16,14 +16,15 @@ def test_AutoRemoteDDOSA_construct():
 #def test_AutoRemoteDDOSA_docker():
 #    remote=ddosaclient.AutoRemoteDDOSA(config_version="docker_any")
 
+test_scw=os.environ.get('TEST_SCW',"035200230010.001")
 
 
 def test_cat():
     remote=ddosaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="CatExtract",
-                         modules=["ddosa","git://ddosadm"],
-                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                         modules=["git://ddosa","git://ddosadm"],
+                         assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
@@ -51,8 +52,8 @@ def test_cat_injection():
     ]
 
     product=remote.query(target="CatForImage",
-                         modules=["ddosa","git://ddosadm","git://gencat"],
-                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                         modules=["git://ddosa","git://ddosadm","git://gencat"],
+                         assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
                          inject=[cat])
@@ -87,7 +88,7 @@ def test_cat_injection_image():
 
     product=remote.query(target="ii_skyimage",
                          modules=["ddosa","git://ddosadm","git://gencat"],
-                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                         assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")',
                                  'ddosa.ii_skyimage(input_cat=gencat.CatForImage)'],
@@ -114,7 +115,7 @@ def test_cat_injection_image_empty_cat():
 
     product=remote.query(target="ii_skyimage",
                          modules=["ddosa","git://ddosadm"],
-                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                         assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")',
                                  ],
@@ -149,7 +150,7 @@ def test_cat_injection_spectra():
 
     product=remote.query(target="ii_spectra_extract",
                          modules=["ddosa","git://ddosadm","git://gencat"],
-                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                         assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
                                  'ddosa.ii_spectra_extract(input_cat=gencat.CatForSpectra)',
@@ -193,7 +194,7 @@ def test_cat_injection_lc():
 
     product=remote.query(target="ii_lc_extract",
                          modules=["ddosa","git://ddosadm","git://gencat"],
-                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                         assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
                                  'ddosa.ii_lc_extract(input_cat=gencat.CatForSpectra)',
@@ -217,7 +218,7 @@ def test_gti():
 
     product=remote.query(target="ibis_gti",
                          modules=["ddosa","git://ddosadm"],
-                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                         assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
@@ -228,8 +229,8 @@ def test_image():
     remote=ddosaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="ii_skyimage",
-                         modules=["ddosa","git://ddosadm"],
-                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                         modules=["git://ddosa","git://ddosadm"],
+                         assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
@@ -239,7 +240,7 @@ def test_spectrum():
 
     product=remote.query(target="ii_spectra_extract",
                          modules=["ddosa","git://ddosadm"],
-                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                         assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
                                  'ddosa.CatForLC(use_minsig=3)',
@@ -253,7 +254,7 @@ def test_spectrum_show_standard_catalog():
 
     product=remote.query(target="CatForSpectraFromImaging",
                          modules=["ddosa","git://ddosadm"],
-                         assume=[scwsource_module+'.ScWData(input_scwid="035200230010.001")',
+                         assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
                                  'ddosa.CatForLC(use_minsig=3)',
