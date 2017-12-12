@@ -205,8 +205,11 @@ class RemoteDDOSA(object):
 
             open("tmp_response_content.txt", "w").write(response.content)
             raise WorkerException("no json was produced!",content=response.content,worker_output=worker_output,product_exception=e)
-            
-
+        except Exception as e:
+            log("exception decoding json:", e)
+            log("raw content: ", response.content, logtype="error")
+            open("tmp_response_content.txt", "w").write(response.content)
+            raise
 
     def __repr__(self):
         return "[%s: direct %s]"%(self.__class__.__name__,self.service_url)
