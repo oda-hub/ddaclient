@@ -17,6 +17,7 @@ def test_AutoRemoteDDOSA_construct():
 #    remote=ddosaclient.AutoRemoteDDOSA(config_version="docker_any")
 
 test_scw=os.environ.get('TEST_SCW',"010200210010.001")
+test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420010.001"]')
 
 
 def test_single_image():
@@ -29,6 +30,22 @@ def test_single_image():
     assert os.path.exists(product.skyima)
 
 def test_mosaic():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    product=remote.query(target="mosaic_jemx",
+              modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
+              assume=['ddjemx.JMXScWImageList(\
+                  input_scwlist=\
+                  ddosa.IDScWList(\
+                      use_scwid_list=%s\
+                      )\
+                  )'%test_scw_list_str]
+              )
+
+
+    assert os.path.exists(product.skyima)
+
+def test_mosaic_rangequery():
     remote=ddosaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="mosaic_jemx",
