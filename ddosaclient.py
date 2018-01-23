@@ -18,6 +18,13 @@ try:
 except ImportError:
     docker_available=False
 
+class AnalysisDelegatedException(Exception):
+    def __init__(self,delegation_state):
+        self.delegation_state=delegation_state
+
+    def __repr__(self):
+        return "[%s: %s]"%(self.__class__.__name__, self.data['delegation_state'])
+
 class AnalysisException(Exception):
     @classmethod
     def from_ddosa_analysis_exceptions(cls,analysis_exceptions):
@@ -106,6 +113,8 @@ class DDOSAproduct(object):
             raise
 
         if r['exceptions']!=[] and r['exceptions']!='' and r['exceptions'] is not None:
+            if r['exceptions']['exception_type']=="delegation":
+                raise AnalysisDelegatedException(r['exceptions']['delegation_state'])
             raise AnalysisException.from_ddosa_unhandled_exception(r['exceptions'])
 
         if data is None:
