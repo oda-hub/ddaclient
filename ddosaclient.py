@@ -157,18 +157,26 @@ class RemoteDDOSA(object):
             raise Exception("adapter %s not allowed!"%adapter)
         self._service_url=service_url
 
-    def prepare_request(self,target,modules=[],assume=[],inject=[]):
+    def prepare_request(self,target,modules=[],assume=[],inject=[],prompt_delegate=False,callback=None):
         log("modules", ",".join(modules))
         log("assume", ",".join(assume))
         log("service url:",self.service_url)
         log("target:", target)
         log("inject:",inject)
-        args=dict(url=self.service_url+"/api/v1.0/"+target,
+
+        if prompt_delegate:
+            api_version = "v2.0"
+        else:
+            api_version = "v1.0"
+
+        args=dict(url=self.service_url+"/api/"+api_version+"/"+target,
                     params=dict(modules=",".join(self.default_modules+modules),
                                 assume=",".join(self.default_assume+assume),
                                 inject=json.dumps(inject),
                                 ))
 
+        if callback is not None:
+            args['params']['callback']=callback
         
         if 'OPENID_TOKEN' in os.environ:
             args['params']['token']=os.environ['OPENID_TOKEN']
@@ -179,9 +187,9 @@ class RemoteDDOSA(object):
     def poke(self):
         return self.query("poke")
 
-    def query(self,target,modules=[],assume=[],inject=[]):
+    def query(self,target,modules=[],assume=[],inject=[],prompt_delegate=False,callback=None):
         try:
-            p=self.prepare_request(target,modules,assume,inject)
+            p=self.prepare_request(target,modules,assume,inject,prompt_delegate,callback)
             log("request to pipeline:",p)
             log("request to pipeline:",p['url']+"/"+urllib.urlencode(p['params']))
             response=requests.get(p['url'],p['params'],auth=self.secret.get_auth())

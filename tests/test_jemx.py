@@ -17,7 +17,7 @@ def test_AutoRemoteDDOSA_construct():
 #    remote=ddosaclient.AutoRemoteDDOSA(config_version="docker_any")
 
 test_scw=os.environ.get('TEST_SCW',"010200210010.001")
-test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420010.001"]')
+test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420010.001","005100430010.001"]')
 
 
 def test_single_image():
