@@ -146,3 +146,24 @@ def test_delegation():
                          prompt_delegate=True,
                          callback="http://localhost:5000/callback/1/1",
                          )
+
+def test_mosaic_delegation():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    product = remote.query(target="mosaic_ii_skyimage",
+                           modules=["ddosa", "git://ddosadm", 'git://rangequery'],
+                           assume=['ddosa.ImageGroups(\
+                     input_scwlist=\
+                     rangequery.TimeDirectionScWList(\
+                         use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                         use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
+                         use_max_pointings=2 \
+                         )\
+                     )\
+                 ',
+                                   'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                   'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+
+                            prompt_delegate=True,
+                            callback="http://localhost:5000/callback/1/1",
+                         )
