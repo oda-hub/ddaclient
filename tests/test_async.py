@@ -157,7 +157,7 @@ def test_mosaic_delegation():
                      rangequery.TimeDirectionScWList(\
                          use_coordinates=dict(RA=83,DEC=22,radius=5),\
                          use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
-                         use_max_pointings=6 \
+                         use_max_pointings=11 \
                          )\
                      )\
                  ',
@@ -165,5 +165,5 @@ def test_mosaic_delegation():
                                    'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
 
                             prompt_delegate=True,
-                            callback="http://10.25.64.51:5000/callback/1/1",
+                            callback="http://10.25.64.51:5000/callback/?job_id=1&asdsd=2",
                          )
