@@ -434,7 +434,7 @@ def test_report_scwlist():
                       rangequery.TimeDirectionScWList(\
                           use_coordinates=dict(RA=83,DEC=22,radius=5),\
                           use_timespan=dict(T1="2008-04-12T11:11:11",T2="2009-04-12T11:11:11"),\
-                          use_max_pointings=5 \
+                          use_max_pointings=3 \
                           )\
                       )'])
 

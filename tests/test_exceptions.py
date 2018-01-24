@@ -38,7 +38,7 @@ def test_failing_request():
         assert hasattr(e, 'exceptions')
         assert len(e.exceptions) == 1
         print(e.exceptions)
-        assert e.exceptions[0]['requested_by'] == '+FailingMedia.v0 output_required_by_parent +FailingMedia.v0 direct'
+        assert e.exceptions[0]['requested_by'] == '+FailingMedia.v0 output_required_by_parent +FailingMedia.v0 command_line'
 
 
 

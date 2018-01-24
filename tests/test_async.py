@@ -175,7 +175,7 @@ def test_mosaic_delegation():
                                        'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
 
                                 prompt_delegate=True,
-                                callback="http://10.25.64.51:5000/callback?job_id=1&asdsd=2",
+                                callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
                              )
 
     assert excinfo.value.delegation_state == "submitted"
