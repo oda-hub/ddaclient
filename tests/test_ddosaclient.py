@@ -353,7 +353,7 @@ def test_sum_spectrum():
 
     try:
         product=remote.query(target="ISGRISpectraSum",
-                  modules=["ddosa","git://ddosadm","git://useresponse","git://process_isgri_spectra","git://rangequery"],
+                  modules=["ddosa","git://ddosadm","git://useresponse/cd7855bf7","git://process_isgri_spectra/2200bfd","git://rangequery"],
                   assume=['process_isgri_spectra.ScWSpectraList(\
                       input_scwlist=\
                       rangequery.TimeDirectionScWList(\
