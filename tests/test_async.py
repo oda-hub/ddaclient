@@ -179,3 +179,48 @@ def test_mosaic_delegation():
                              )
 
     assert excinfo.value.delegation_state == "submitted"
+
+def test_mosaic_delegation_cat():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    cat = ['SourceCatalog',
+           {
+               "catalog": [
+                   {
+                       "DEC": 23,
+                       "NAME": "TEST_SOURCE",
+                       "RA": 83
+                   },
+                   {
+                       "DEC": 13,
+                       "NAME": "TEST_SOURCE2",
+                       "RA": 83
+                   }
+               ],
+               "version": "v1"
+           }
+        ]
+
+#    random_ra=83+(random.random()-0.5)*5
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product = remote.query(target="mosaic_ii_skyimage",
+                               modules=["git://ddosa", "git://ddosadm", 'git://rangequery','git://gencat'],
+                               assume=['ddosa.ImageGroups(\
+                         input_scwlist=\
+                         rangequery.TimeDirectionScWList(\
+                             use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                             use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
+                             use_max_pointings=2 \
+                             )\
+                         )\
+                     ',
+                                       'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=True)',
+                                       'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+
+                                prompt_delegate=True,
+                                callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
+                               inject=[cat],
+                             )
+
+    assert excinfo.value.delegation_state == "submitted"
