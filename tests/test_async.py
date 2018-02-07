@@ -188,7 +188,7 @@ def test_mosaic_delegation_cat():
                "catalog": [
                    {
                        "DEC": 23,
-                       "NAME": "TEST_SOURCE",
+                       "NAME": "TEST_SOURCE1",
                        "RA": 83
                    },
                    {
@@ -218,9 +218,9 @@ def test_mosaic_delegation_cat():
                                        'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=True)',
                                        'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
 
-                                prompt_delegate=True,
-                                callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
+                               prompt_delegate=True,
                                inject=[cat],
                              )
+        # callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
 
     assert excinfo.value.delegation_state == "submitted"
