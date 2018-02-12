@@ -6,6 +6,9 @@ import random
 
 import ddosaclient
 
+test_scw=os.environ.get('TEST_SCW',"010200210010.001")
+test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420010.001","005100430010.001"]')
+
 def test_AutoRemoteDDOSA_construct():
     remote=ddosaclient.AutoRemoteDDOSA()
 
@@ -201,7 +204,7 @@ def test_mosaic_delegation_cat():
            }
         ]
 
-#    random_ra=83+(random.random()-0.5)*5
+    random_ra=83+(random.random()-0.5)*5
 
     with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(target="mosaic_ii_skyimage",
@@ -209,12 +212,12 @@ def test_mosaic_delegation_cat():
                                assume=['ddosa.ImageGroups(\
                          input_scwlist=\
                          rangequery.TimeDirectionScWList(\
-                             use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                             use_coordinates=dict(RA=%.5lg,DEC=22,radius=5),\
                              use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
                              use_max_pointings=2 \
                              )\
                          )\
-                     ',
+                     '%random_ra,
                                        'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=True)',
                                        'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
 
@@ -224,3 +227,26 @@ def test_mosaic_delegation_cat():
         # callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
 
     assert excinfo.value.delegation_state == "submitted"
+
+def test_jemx():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+ #   random_ra=83+(random.random()-0.5)*5
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product=remote.query(target="mosaic_jemx",
+                modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
+                assume=['ddjemx.JMXScWImageList(\
+                    input_scwlist=\
+                    ddosa.IDScWList(\
+                        use_scwid_list=%s\
+                        )\
+                    )'%test_scw_list_str],
+                prompt_delegate=True,
+                )
+
+
+
+
+        #assert os.path.exists(product.spectrum_Crab)
+
