@@ -382,7 +382,7 @@ def test_sum_spectrum_extract_all():
 
     try:
         product = remote.query(target="ISGRISpectraSum",
-                               modules=["ddosa", "git://ddosadm", "git://useresponse", "git://process_isgri_spectra",
+                               modules=["ddosa","git://ddosadm","git://useresponse/cd7855bf7","git://process_isgri_spectra/2200bfd",
                                         "git://rangequery"],
                                assume=['process_isgri_spectra.ScWSpectraList(\
                       input_scwlist=\
@@ -406,11 +406,12 @@ def test_sum_spectrum_extract_all():
 
     assert fits.open(product.isgri_sum_Crab)[1].header['EXPOSURE'] > 3000
 
+@pytest.mark.skip(reason="no way of currently testing this")
 def test_fit_one():
     remote=ddosaclient.AutoRemoteDDOSA()
 
     product = remote.query(target="FitSourcePowerlaw",
-                           modules=["ddosa", "git://ddosadm","git://useresponse", "git://process_isgri_spectra",
+                           modules=["ddosa","git://ddosadm","git://useresponse/cd7855bf7","git://process_isgri_spectra/2200bfd","git://rangequery",
                                     "git://ddjemx","git://fit"],
                            assume=[scwsource_module + '.ScWData(input_scwid="066500330010.001")',
                                    'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
