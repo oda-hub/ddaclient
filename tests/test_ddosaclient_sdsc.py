@@ -10,6 +10,7 @@ if 'SCWDATA_SOURCE_MODULE' in os.environ:
     scwsource_module=os.environ['SCWDATA_SOURCE_MODULE']
 
 
+@pytest.mark.skip(reason="no way of testing this outside SDSC")
 def test_cat():
     remote=ddosaclient.AutoRemoteDDOSA()
 

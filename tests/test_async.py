@@ -2,8 +2,12 @@ import pytest
 import requests
 import os
 import time
+import random
 
 import ddosaclient
+
+test_scw=os.environ.get('TEST_SCW',"010200210010.001")
+test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420010.001","005100430010.001"]')
 
 def test_AutoRemoteDDOSA_construct():
     remote=ddosaclient.AutoRemoteDDOSA()
@@ -98,10 +102,10 @@ def test_poke_image():
         time.sleep(1)
         try:
             r=remote.poke()
-            print r
+            print(r)
             break
         except ddosaclient.WorkerException as e:
-            print e
+            print(e)
 
 def test_spectrum():
     remote=ddosaclient.AutoRemoteDDOSA()
@@ -138,26 +142,36 @@ def test_mosaic():
 def test_delegation():
     remote=ddosaclient.AutoRemoteDDOSA()
 
-    product=remote.query(target="ii_skyimage",
-                         modules=["ddosa","git://ddosadm"],
-                         assume=['ddosa.ScWData(input_scwid="035200430010.001")',
-                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
-                                 'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
-                         prompt_delegate=True,
-                         callback="http://10.25.64.51:5000/callback/1/1",
-                         )
+    random_rev=random.randint(50,1800)
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product=remote.query(target="ii_skyimage",
+                             modules=["ddosa","git://ddosadm"],
+                             assume=['ddosa.ScWData(input_scwid="%.4i00430010.001")'%random_rev,
+                                     'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                     'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+                             prompt_delegate=True,
+                             callback="http://10.25.64.51:5000/callback",
+                             )
+
+    assert excinfo.value.delegation_state == "submitted"
+
 
 def test_mosaic_delegation():
     remote=ddosaclient.AutoRemoteDDOSA()
 
-    product = remote.query(target="mosaic_ii_skyimage",
-                           modules=["git://ddosa", "git://ddosadm", 'git://rangequery'],
-                           assume=['ddosa.ImageGroups(\
-                     input_scwlist=\
-                     rangequery.TimeDirectionScWList(\
-                         use_coordinates=dict(RA=83,DEC=22,radius=5),\
-                         use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
-                         use_max_pointings=6 \
+    random_ra=83+(random.random()-0.5)*5
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product = remote.query(target="mosaic_ii_skyimage",
+                               modules=["git://ddosa", "git://ddosadm", 'git://rangequery'],
+                               assume=['ddosa.ImageGroups(\
+                         input_scwlist=\
+                         rangequery.TimeDirectionScWList(\
+                             use_coordinates=dict(RA=%.5lg,DEC=22,radius=5),\
+                             use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
+                             use_max_pointings=2 \
+                             )\
                          )\
                      )\
                  ',
@@ -171,20 +185,90 @@ def test_mosaic_delegation():
 def test_spectra_delegation():
     remote=ddosaclient.AutoRemoteDDOSA()
 
-    product = remote.query(target="ISGRISpectraSum",
-                           modules=["git://ddosa", "git://ddosadm", 'git://rangequery'],
-                           assume=['process_isgri_spectra.ScWSpectraList(\
-                     input_scwlist=\
-                     rangequery.TimeDirectionScWList(\
-                         use_coordinates=dict(RA=83,DEC=22,radius=5),\
-                         use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
-                         use_max_pointings=6 \
-                         )\
-                     )\
-                 ',
-                                   'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
-                                   'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product = remote.query(target="ISGRISpectraSum",
+                               modules=["git://ddosa", "git://ddosadm", 'git://rangequery'],
+                               assume=['process_isgri_spectra.ScWSpectraList(\
+                         input_scwlist=\
+                         rangequery.TimeDirectionScWList(\
+                             use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                             use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
+                             use_max_pointings=6 \
+                             )\
+                         )',
+                                           'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=True)',
+                                           'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
 
-                            prompt_delegate=True,
-                            callback="http://10.25.64.51:5000/callback/1/1",
-                         )
+                                    prompt_delegate=True,
+                                    callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
+                                 )
+
+    assert excinfo.value.delegation_state == "submitted"
+
+def test_mosaic_delegation_cat():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    cat = ['SourceCatalog',
+           {
+               "catalog": [
+                   {
+                       "DEC": 23,
+                       "NAME": "TEST_SOURCE1",
+                       "RA": 83
+                   },
+                   {
+                       "DEC": 13,
+                       "NAME": "TEST_SOURCE2",
+                       "RA": 83
+                   }
+               ],
+               "version": "v1"
+           }
+        ]
+
+    random_ra=83+(random.random()-0.5)*5
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product = remote.query(target="mosaic_ii_skyimage",
+                               modules=["git://ddosa", "git://ddosadm", 'git://rangequery','git://gencat'],
+                               assume=['ddosa.ImageGroups(\
+                         input_scwlist=\
+                         rangequery.TimeDirectionScWList(\
+                             use_coordinates=dict(RA=%.5lg,DEC=22,radius=5),\
+                             use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
+                             use_max_pointings=2 \
+                             )\
+                         )\
+                     '%random_ra,
+                                       'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=True)',
+                                       'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+
+                               prompt_delegate=True,
+                               inject=[cat],
+                             )
+        # callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
+
+    assert excinfo.value.delegation_state == "submitted"
+
+def test_jemx():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+ #   random_ra=83+(random.random()-0.5)*5
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product=remote.query(target="mosaic_jemx",
+                modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
+                assume=['ddjemx.JMXScWImageList(\
+                    input_scwlist=\
+                    ddosa.IDScWList(\
+                        use_scwid_list=%s\
+                        )\
+                    )'%test_scw_list_str],
+                prompt_delegate=True,
+                )
+
+
+
+
+        #assert os.path.exists(product.spectrum_Crab)
+

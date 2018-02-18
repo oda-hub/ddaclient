@@ -23,7 +23,7 @@ class AnalysisDelegatedException(Exception):
         self.delegation_state=delegation_state
 
     def __repr__(self):
-        return "[%s: %s]"%(self.__class__.__name__, self.data['delegation_state'])
+        return "[%s: %s]"%(self.__class__.__name__, self.delegation_state)
 
 class AnalysisException(Exception):
     @classmethod
