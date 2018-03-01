@@ -173,13 +173,35 @@ def test_mosaic_delegation():
                              use_max_pointings=2 \
                              )\
                          )\
-                     '%random_ra,
-                                       'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=True)',
-                                       'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+                     )\
+                 ',
+                                   'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                   'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
 
-                                prompt_delegate=True,
-                                callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
-                             )
+                            prompt_delegate=True,
+                            callback="http://10.25.64.51:5000/callback/1/1",
+                         )
+
+def test_spectra_delegation():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product = remote.query(target="ISGRISpectraSum",
+                               modules=["git://ddosa", "git://ddosadm", 'git://rangequery'],
+                               assume=['process_isgri_spectra.ScWSpectraList(\
+                         input_scwlist=\
+                         rangequery.TimeDirectionScWList(\
+                             use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                             use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
+                             use_max_pointings=6 \
+                             )\
+                         )',
+                                           'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=True)',
+                                           'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+
+                                    prompt_delegate=True,
+                                    callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
+                                 )
 
     assert excinfo.value.delegation_state == "submitted"
 
