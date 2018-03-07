@@ -29,6 +29,22 @@ def test_single_image():
 
     assert os.path.exists(product.skyima)
 
+def test_mosaic_osa():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    product=remote.query(target="mosaic_jemx",
+              modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
+              assume=['ddjemx.JMXImageGroups(\
+                  input_scwlist=\
+                  ddosa.IDScWList(\
+                      use_scwid_list=%s\
+                      )\
+                  )'%test_scw_list_str]
+              )
+
+
+    assert os.path.exists(product.skyima)
+
 def test_mosaic():
     remote=ddosaclient.AutoRemoteDDOSA()
 

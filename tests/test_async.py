@@ -3,11 +3,14 @@ import requests
 import os
 import time
 import random
+import urllib
 
 import ddosaclient
 
 test_scw=os.environ.get('TEST_SCW',"010200210010.001")
 test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420010.001","005100430010.001"]')
+                                    
+default_callback="http://mock-dispatcher.dev:6001/callback"
 
 def test_AutoRemoteDDOSA_construct():
     remote=ddosaclient.AutoRemoteDDOSA()
@@ -151,7 +154,7 @@ def test_delegation():
                                      'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                      'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
                              prompt_delegate=True,
-                             callback="http://10.25.64.51:5000/callback",
+                             callback=default_callback,
                              )
 
     assert excinfo.value.delegation_state == "submitted"
@@ -179,7 +182,7 @@ def test_mosaic_delegation():
                                    'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
 
                             prompt_delegate=True,
-                            callback="http://10.25.64.51:5000/callback/1/1",
+                            callback=default_callback,
                          )
 
 def test_spectra_delegation():
@@ -200,7 +203,7 @@ def test_spectra_delegation():
                                            'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
 
                                     prompt_delegate=True,
-                                    callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
+                                    callback=default_callback,
                                  )
 
     assert excinfo.value.delegation_state == "submitted"
@@ -208,6 +211,7 @@ def test_spectra_delegation():
 def test_mosaic_delegation_cat():
     remote=ddosaclient.AutoRemoteDDOSA()
 
+    random_ra=83+(random.random()-0.5)*5
     cat = ['SourceCatalog',
            {
                "catalog": [
@@ -219,14 +223,18 @@ def test_mosaic_delegation_cat():
                    {
                        "DEC": 13,
                        "NAME": "TEST_SOURCE2",
-                       "RA": 83
+                       "RA": random_ra
                    }
                ],
                "version": "v1"
            }
         ]
 
-    random_ra=83+(random.random()-0.5)*5
+
+    job_id=time.strftime("%y%m%d_%H%M%S")
+    encoded=urllib.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
+
+    print("encoded:",encoded)
 
     with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(target="mosaic_ii_skyimage",
@@ -234,16 +242,63 @@ def test_mosaic_delegation_cat():
                                assume=['ddosa.ImageGroups(\
                          input_scwlist=\
                          rangequery.TimeDirectionScWList(\
-                             use_coordinates=dict(RA=%.5lg,DEC=22,radius=5),\
+                             use_coordinates=dict(RA=83,DEC=22,radius=5),\
                              use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
-                             use_max_pointings=2 \
+                             use_max_pointings=3 \
                              )\
                          )\
-                     '%random_ra,
+                     ',
                                        'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=True)',
                                        'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
-
+                               callback=default_callback+"?"+encoded,
                                prompt_delegate=True,
+                               inject=[cat],
+                             )
+        # callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
+
+    assert excinfo.value.delegation_state == "submitted"
+
+def test_mosaic_delegation_cat_distribute():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    random_ra=83+(random.random()-0.5)*5
+    cat = ['SourceCatalog',
+           {
+               "catalog": [
+                   {
+                       "DEC": 23,
+                       "NAME": "TEST_SOURCE1",
+                       "RA": 83
+                   },
+                   {
+                       "DEC": 13,
+                       "NAME": "TEST_SOURCE2",
+                       "RA": random_ra
+                   }
+               ],
+               "version": "v1"
+           }
+        ]
+
+
+    job_id=time.strftime("%y%m%d_%H%M%S")
+    encoded=urllib.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
+
+    print("encoded:",encoded)
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product = remote.query(target="mosaic_ii_skyimage",
+                               modules=["git://ddosa", 'git://rangequery','git://gencat/dev','git://ddosa_delegate'],
+                               assume=['ddosa.ImageGroups(input_scwlist=rangequery.TimeDirectionScWList)',
+                                       'rangequery.TimeDirectionScWList(\
+                                             use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                                             use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
+                                             use_max_pointings=30 \
+                                        )',
+                                       'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=True)',
+                                       'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+                               callback=default_callback+"?"+encoded,
+ #                              prompt_delegate=True,
                                inject=[cat],
                              )
         # callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
@@ -272,3 +327,25 @@ def test_jemx():
 
         #assert os.path.exists(product.spectrum_Crab)
 
+
+def test_jemx_osa_mosaic():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+ #   random_ra=83+(random.random()-0.5)*5
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product=remote.query(target="mosaic_jemx",
+                modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
+                assume=['ddjemx.JMXImageGroups(\
+                    input_scwlist=\
+                    ddosa.IDScWList(\
+                        use_scwid_list=%s\
+                        )\
+                    )'%test_scw_list_str],
+                prompt_delegate=True,
+                )
+
+
+
+
+        #assert os.path.exists(product.spectrum_Crab)
