@@ -1,4 +1,5 @@
 import pytest
+import random
 import requests
 import os
 import time
@@ -40,7 +41,23 @@ def test_failing_request():
         print(e.exceptions)
         assert e.exceptions[0]['requested_by'] == '+FailingMedia.v0 output_required_by_parent +FailingMedia.v0 command_line'
 
+def test_delegated_failing_request():
+    remote=ddosaclient.AutoRemoteDDOSA()
 
+    #with pytest.raises(requests.ConnectionError):
+
+    try:
+        product=remote.query(target="FailingMedia",
+                             modules=["ddosa","git://ddosadm"],
+                             assume=[scwsource_module+'.ScWData(input_scwid="035200250010.001")',
+                                     'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                     'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")',
+                                     'ddosa.FailingMedia(use_version="%i")'%random.randint(0,1000)],
+                            prompt_delegate=True,
+                            callback="file:///data/ddcache/test_callback",
+                            )
+    except ddosaclient.AnalysisDelegatedException:
+        pass
 
 def test_bad_request():
     remote=ddosaclient.AutoRemoteDDOSA()

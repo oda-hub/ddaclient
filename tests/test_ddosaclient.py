@@ -169,6 +169,66 @@ def test_cat_injection_spectra():
 
     assert d[2].header['NAME'] == cat[1]['catalog'][0]['NAME']
 
+def test_lc():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    product = remote.query(target="lc_pick",
+                           modules=["git://ddosa", "git://ddosadm", 'git://rangequery'],
+                           assume=['ddosa.LCGroups(input_scwlist=rangequery.TimeDirectionScWList)',
+                    'rangequery.TimeDirectionScWList(\
+                         use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                         use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
+                         use_max_pointings=1 \
+                         )',
+                               'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                               'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+
+                     )
+
+
+def test_cat_injection_lc_pick():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    cat=['SourceCatalog',
+         {
+            "catalog": [
+                    {
+                        "DEC": 23,
+                        "NAME": "TEST_SOURCE",
+                        "RA": 83
+                    },
+                    {
+                        "DEC": 13,
+                        "NAME": "TEST_SOURCE2",
+                        "RA": 83
+                    }
+                ],
+            "version": "v1"
+        }
+    ]
+
+
+    product=remote.query(target="lc_pick",
+                         modules=["ddosa","git://ddosadm","git://gencat"],
+                         assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
+                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                 'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
+                                 'ddosa.ii_lc_extract(input_cat=gencat.CatForSpectra)',
+                                ],
+                         inject = [cat])
+
+    assert os.path.exists(product.lightcurve)
+
+    print("product:",product)
+
+    assert hasattr(product, 'lightcurve')
+    d = fits.open(product.lightcurve)
+
+    assert len(d[1].data) == 2
+    assert len(d[2:]) == 2
+
+    assert d[2].header['NAME'] == cat[1]['catalog'][0]['NAME']
+
 
 def test_cat_injection_lc():
     remote=ddosaclient.AutoRemoteDDOSA()

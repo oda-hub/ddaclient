@@ -159,21 +159,20 @@ def test_delegation():
 
     assert excinfo.value.delegation_state == "submitted"
 
-
-def test_mosaic_delegation():
+def test_lc_delegation():
     remote=ddosaclient.AutoRemoteDDOSA()
 
     random_ra=83+(random.random()-0.5)*5
 
     with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
-        product = remote.query(target="mosaic_ii_skyimage",
+        product = remote.query(target="lc_pick",
                                modules=["git://ddosa", "git://ddosadm", 'git://rangequery'],
                                assume=['ddosa.ImageGroups(\
                          input_scwlist=\
                          rangequery.TimeDirectionScWList(\
                              use_coordinates=dict(RA=%.5lg,DEC=22,radius=5),\
                              use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
-                             use_max_pointings=2 \
+                             use_max_pointings=1 \
                              )\
                          )\
                      )\
@@ -183,6 +182,29 @@ def test_mosaic_delegation():
 
                             prompt_delegate=True,
                             callback=default_callback,
+                         )
+
+def test_mosaic_delegation():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    random_ra=83+(random.random()-0.5)*5
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product = remote.query(target="mosaic_ii_skyimage",
+                               modules=["git://ddosa", 'git://rangequery'],
+                               assume=['ddosa.ImageGroups(\
+                         input_scwlist=\
+                         rangequery.TimeDirectionScWList(\
+                             use_coordinates=dict(RA=%.5lg,DEC=22,radius=5),\
+                             use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
+                             use_max_pointings=2 \
+                             )\
+                         )'%random_ra,
+                                   'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                   'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+
+                            prompt_delegate=True,
+                            callback="file://data/ddcache/test_callback",
                          )
 
 def test_spectra_delegation():
@@ -244,10 +266,57 @@ def test_mosaic_delegation_cat():
                          rangequery.TimeDirectionScWList(\
                              use_coordinates=dict(RA=83,DEC=22,radius=5),\
                              use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
-                             use_max_pointings=3 \
+                             use_max_pointings=100 \
                              )\
                          )\
                      ',
+                                       'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=True)',
+                                       'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+                               callback=default_callback+"?"+encoded,
+                               prompt_delegate=True,
+                               inject=[cat],
+                             )
+        # callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
+
+    assert excinfo.value.delegation_state == "submitted"
+
+def test_spectra_delegation_cat_distribute():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    random_ra=83+(random.random()-0.5)*5
+    cat = ['SourceCatalog',
+           {
+               "catalog": [
+                   {
+                       "DEC": 23,
+                       "NAME": "TEST_SOURCE1",
+                       "RA": 83
+                   },
+                   {
+                       "DEC": 13,
+                       "NAME": "TEST_SOURCE2",
+                       "RA": random_ra
+                   }
+               ],
+               "version": "v1"
+           }
+        ]
+
+
+    job_id=time.strftime("%y%m%d_%H%M%S")
+    encoded=urllib.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
+
+    print("encoded:",encoded)
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product = remote.query(target="ISGRISpectraSum",
+                               modules=["git://ddosa", 'git://rangequery',"git://useresponse/cd7855bf7","git://process_isgri_spectra/2200bfd",'git://gencat','git://ddosa_delegate'],
+                               assume=['process_isgri_spectra.ScWSpectraList(input_scwlist=rangequery.TimeDirectionScWList)',
+                                       'rangequery.TimeDirectionScWList(\
+                                             use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                                             use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
+                                             use_max_pointings=10 \
+                                        )',
                                        'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=True)',
                                        'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
                                callback=default_callback+"?"+encoded,
@@ -293,12 +362,12 @@ def test_mosaic_delegation_cat_distribute():
                                        'rangequery.TimeDirectionScWList(\
                                              use_coordinates=dict(RA=83,DEC=22,radius=5),\
                                              use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
-                                             use_max_pointings=30 \
+                                             use_max_pointings=10 \
                                         )',
                                        'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=True)',
                                        'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
                                callback=default_callback+"?"+encoded,
- #                              prompt_delegate=True,
+                               prompt_delegate=True,
                                inject=[cat],
                              )
         # callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
