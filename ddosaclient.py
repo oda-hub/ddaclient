@@ -311,3 +311,21 @@ class HerdedDDOSA(RemoteDDOSA):
     def query(self):
         raise Exception("not implemented!")
 
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description='client to remote dda combinator')
+    parser.add_argument('target')
+    parser.add_argument('-m',dest='modules',action='append',default=[])
+    parser.add_argument('-a',dest='assume',action='append',default=[])
+
+    args = parser.parse_args()
+    log("target:",args.target)
+    log("modules:",args.modules)
+    log("assume:",args.assume)
+
+    AutoRemoteDDOSA().query(args.target,args.modules,args.assume)
+
+if __name__ == '__main__':
+    main()
+

@@ -12,6 +12,11 @@ setup(
                 "*.py"
                 ]
             },
+        entry_points={
+                'console_scripts':[
+                    'dda-client = ddosaclient:main'
+                ]
+        },
         license='Creative Commons Attribution-Noncommercial-Share Alike license',
         long_description=open('README.md').read(),
         )
