@@ -318,13 +318,21 @@ def main():
     parser.add_argument('target')
     parser.add_argument('-m',dest='modules',action='append',default=[])
     parser.add_argument('-a',dest='assume',action='append',default=[])
+    parser.add_argument('-i',dest='inject',action='append',default=[])
+    parser.add_argument('-D',dest='prompt_delegate',action='store_true',default=False)
 
     args = parser.parse_args()
     log("target:",args.target)
     log("modules:",args.modules)
     log("assume:",args.assume)
+    
+    inject=[]
+    for inject_fn in args.inject:
+        inject.append(json.load(open(inject_fn)))
 
-    AutoRemoteDDOSA().query(args.target,args.modules,args.assume)
+    log("inject:",inject)
+
+    AutoRemoteDDOSA().query(args.target,args.modules,args.assume,inject=inject)
 
 if __name__ == '__main__':
     main()
