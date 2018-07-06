@@ -31,8 +31,17 @@ class AnalysisException(Exception):
         obj=cls("found analysis exceptions", analysis_exceptions)
         obj.exceptions=[]
         for node_exception in analysis_exceptions:
-            node,exception=re.match("\('(.*?)',(.*)\)",node_exception).groups()
-            exception=exception.strip()
+            log("found analysis exception:", node_exception)
+
+            if isinstance(node_exception,list) and len(node_exception)==2:
+                node,exception=re.match("\('(.*?)',(.*)\)",node_exception).groups()
+                exception=exception.strip()
+            else:
+                try:
+                    node,exception=re.match("\('(.*?)',(.*)\)",node_exception).groups()
+                    exception=exception.strip()
+                except TypeError:
+                    raise Exception("unable to interpret node exception:",node_exception)
 
             obj.exceptions.append(dict(node=node,exception=exception,exception_kind="handled"))
         return obj
