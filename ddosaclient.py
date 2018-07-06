@@ -34,7 +34,7 @@ class AnalysisException(Exception):
             log("found analysis exception:", node_exception)
 
             if isinstance(node_exception,list) and len(node_exception)==2:
-                node,exception=re.match("\('(.*?)',(.*)\)",node_exception).groups()
+                node,exception=node_exception
                 exception=exception.strip()
             else:
                 try:
