@@ -4,23 +4,23 @@ import os
 import time
 import astropy.io.fits as fits
 
-import ddosaclient
+import ddaclient
 
 scwsource_module="ddosa"
 if 'SCWDATA_SOURCE_MODULE' in os.environ:
     scwsource_module=os.environ['SCWDATA_SOURCE_MODULE']
 
 def test_AutoRemoteDDOSA_construct():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
 #def test_AutoRemoteDDOSA_docker():
-#    remote=ddosaclient.AutoRemoteDDOSA(config_version="docker_any")
+#    remote=ddaclient.AutoRemoteDDOSA(config_version="docker_any")
 
 test_scw=os.environ.get('TEST_SCW',"035200230010.001")
 
 
 def test_cat():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="CatExtract",
                          modules=["git://ddosa","git://ddosadm"],
@@ -31,7 +31,7 @@ def test_cat():
     print("product:",product)
 
 def test_cat_injection():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     cat=['SourceCatalog',
          {
@@ -65,7 +65,7 @@ def test_cat_injection():
 
 
 def test_cat_injection_image():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     cat=['SourceCatalog',
          {
@@ -101,7 +101,7 @@ def test_cat_injection_image():
 
 
 def test_cat_injection_image_empty_cat():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     cat=['SourceCatalog',
          {
@@ -127,7 +127,7 @@ def test_cat_injection_image_empty_cat():
     #assert len([k[] for k in d])==0
 
 def test_cat_injection_spectra():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     cat=['SourceCatalog',
          {
@@ -170,7 +170,7 @@ def test_cat_injection_spectra():
     assert d[2].header['NAME'] == cat[1]['catalog'][0]['NAME']
 
 def test_lc():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product = remote.query(target="lc_pick",
                            modules=["git://ddosa", "git://ddosadm", 'git://rangequery'],
@@ -187,7 +187,7 @@ def test_lc():
 
 
 def test_cat_injection_lc_pick():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     cat=['SourceCatalog',
          {
@@ -231,7 +231,7 @@ def test_cat_injection_lc_pick():
 
 
 def test_cat_injection_lc():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     cat=['SourceCatalog',
          {
@@ -274,7 +274,7 @@ def test_cat_injection_lc():
     assert d[2].header['NAME'] == cat[1]['catalog'][0]['NAME']
 
 def test_gti():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="ibis_gti",
                          modules=["ddosa","git://ddosadm"],
@@ -286,7 +286,7 @@ def test_gti():
 
 
 def test_image():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="ii_skyimage",
                          modules=["git://ddosa","git://ddosadm"],
@@ -296,7 +296,7 @@ def test_image():
 
 
 def test_spectrum():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="ii_spectra_extract",
                          modules=["ddosa","git://ddosadm"],
@@ -310,7 +310,7 @@ def test_spectrum():
 
 
 def test_spectrum_show_standard_catalog():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="CatForSpectraFromImaging",
                          modules=["ddosa","git://ddosadm"],
@@ -324,7 +324,7 @@ def test_spectrum_show_standard_catalog():
     assert os.path.exists(product.cat)
 
 def test_mosaic():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="Mosaic",
               modules=["ddosa","git://ddosadm","git://osahk","git://mosaic",'git://rangequery'],
@@ -345,7 +345,7 @@ def test_mosaic():
     assert os.path.exists(product.skyima)
 
 def test_summary_injection():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     cat=['SourceCatalog',
              {
@@ -367,7 +367,7 @@ def test_summary_injection():
 
 
 def test_mosaic_injection():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
 
     cat=['SourceCatalog',
@@ -409,7 +409,7 @@ def test_mosaic_injection():
     assert os.path.exists(product.skyima)
 
 def test_sum_spectrum():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     try:
         product=remote.query(target="ISGRISpectraSum",
@@ -425,7 +425,7 @@ def test_sum_spectrum():
                   ',
                   'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                   'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
-    except ddosaclient.WorkerException as e:
+    except ddaclient.WorkerException as e:
         if len(e.args)>2:
             print(e[2])
         raise
@@ -438,7 +438,7 @@ def test_sum_spectrum():
 
 
 def test_sum_spectrum_extract_all():
-    remote = ddosaclient.AutoRemoteDDOSA()
+    remote = ddaclient.AutoRemoteDDOSA()
 
     try:
         product = remote.query(target="ISGRISpectraSum",
@@ -456,7 +456,7 @@ def test_sum_spectrum_extract_all():
                                        'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                        'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")',
                                        'process_isgri_spectra.ISGRISpectraSum(use_extract_all=True)'])
-    except ddosaclient.WorkerException as e:
+    except ddaclient.WorkerException as e:
         if len(e.args) > 2:
             print
             e[2]
@@ -468,7 +468,7 @@ def test_sum_spectrum_extract_all():
 
 @pytest.mark.skip(reason="no way of currently testing this")
 def test_fit_one():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product = remote.query(target="FitSourcePowerlaw",
                            modules=["ddosa","git://ddosadm","git://useresponse/cd7855bf7","git://process_isgri_spectra/2200bfd","git://rangequery",
@@ -484,7 +484,7 @@ def test_fit_one():
     print("product:", product)
 
 def test_report_scwlist():
-    remote = ddosaclient.AutoRemoteDDOSA()
+    remote = ddaclient.AutoRemoteDDOSA()
 
     try:
         product = remote.query(target="ReportScWList",
@@ -499,7 +499,7 @@ def test_report_scwlist():
                           )\
                       )'])
 
-    except ddosaclient.WorkerException as e:
+    except ddaclient.WorkerException as e:
         if len(e.args) > 2:
             print
             e[2]

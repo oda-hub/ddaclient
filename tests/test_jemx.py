@@ -4,24 +4,24 @@ import os
 import time
 import astropy.io.fits as fits
 
-import ddosaclient
+import ddaclient
 
 scwsource_module="ddosa"
 if 'SCWDATA_SOURCE_MODULE' in os.environ:
     scwsource_module=os.environ['SCWDATA_SOURCE_MODULE']
 
 def test_AutoRemoteDDOSA_construct():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
 #def test_AutoRemoteDDOSA_docker():
-#    remote=ddosaclient.AutoRemoteDDOSA(config_version="docker_any")
+#    remote=ddaclient.AutoRemoteDDOSA(config_version="docker_any")
 
 test_scw=os.environ.get('TEST_SCW',"010200210010.001")
 test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420010.001","005100430010.001"]')
 
 
 def test_single_image():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="jemx_image",
                          modules=["git://ddosa","git://ddosadm","git://ddjemx"],
@@ -30,7 +30,7 @@ def test_single_image():
     assert os.path.exists(product.skyima)
 
 def test_mosaic_osa():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="mosaic_jemx",
               modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
@@ -46,7 +46,7 @@ def test_mosaic_osa():
     assert os.path.exists(product.skyima)
 
 def test_mosaic():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="mosaic_jemx",
               modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
@@ -62,7 +62,7 @@ def test_mosaic():
     assert os.path.exists(product.skyima)
 
 def test_mosaic_rangequery():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="mosaic_jemx",
               modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
@@ -80,7 +80,7 @@ def test_mosaic_rangequery():
     assert os.path.exists(product.skyima)
 
 def test_spectrum_sum():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="spe_pick",
               modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],

@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import json
 import ast
-import ddosaclient as dc
+import ddaclient as dc
 import discover_docker
 import imp
 

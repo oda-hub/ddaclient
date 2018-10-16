@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
         name='ddosa-client',
         version='1.0',
-        py_modules= ['ddosaclient','simple_logger','discover_docker'],
+        py_modules= ['ddaclient','simple_logger','discover_docker'],
         package_data     = {
             "": [
                 "*.txt",
@@ -14,7 +14,7 @@ setup(
             },
         entry_points={
                 'console_scripts':[
-                    'dda-client = ddosaclient:main'
+                    'dda-client = ddaclient:main'
                 ]
         },
         license='Creative Commons Attribution-Noncommercial-Share Alike license',
