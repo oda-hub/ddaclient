@@ -62,10 +62,10 @@ class AnalysisException(Exception):
         return obj
 
     def __repr__(self):
-        r=super(AnalysisException,self)
-        r+="\n\nembedded exceptions"
+        r=super(AnalysisException,self).__repr__()
+        r+="; embedded exceptions: "
         for exception in self.exceptions:
-            r+="in node %s: %s"(exception['node'],exception['exception'])
+            r+="in node %s: %s"%(exception['node'],exception['exception'])
         return r
 
 class WorkerException(Exception):
