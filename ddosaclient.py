@@ -65,7 +65,8 @@ class AnalysisException(Exception):
         r=super(AnalysisException,self).__repr__()
         r+="; embedded exceptions: "
         for exception in self.exceptions:
-            r+="in node %s: %s"%(exception['node'],exception['exception'])
+            r+="in node %s: %s"%(exception.get('node','unknown node'),exception.get('exception','no comment'))
+            r+=repr(exception)+";"
         return r
 
 class WorkerException(Exception):
