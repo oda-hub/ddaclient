@@ -4,6 +4,7 @@ import os
 import time
 import random
 import urllib
+import astropy.io.fits as fits
 
 import ddosaclient
 
@@ -41,22 +42,101 @@ def test_mosaic_delegation_cat_distribute():
     print("encoded:",encoded)
 
     custom_version = "imgbins_for_"+job_id
+        
+    kwargs = dict(target="mosaic_ii_skyimage",
+                           modules=["git://ddosa", 'git://rangequery','git://gencat/dev','git://ddosa_delegate'],
+                           assume=['ddosa.ImageGroups(input_scwlist=rangequery.TimeDirectionScWList)',
+                                   'rangequery.TimeDirectionScWList(\
+                                         use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                                         use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
+                                         use_max_pointings=3 \
+                                    )',
+                                   'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=False, use_version="%s")'%custom_version,
+                                   'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+                           callback=default_callback+"?"+encoded,
+                           prompt_delegate=True,
+                           inject=[cat],
+                         )
 
     with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
-        product = remote.query(target="mosaic_ii_skyimage",
-                               modules=["git://ddosa", 'git://rangequery','git://gencat/dev','git://ddosa_delegate'],
-                               assume=['ddosa.ImageGroups(input_scwlist=rangequery.TimeDirectionScWList)',
-                                       'rangequery.TimeDirectionScWList(\
-                                             use_coordinates=dict(RA=83,DEC=22,radius=5),\
-                                             use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
-                                             use_max_pointings=30 \
-                                        )',
-                                       'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=False, use_version="%s")'%custom_version,
-                                       'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
-                               callback=default_callback+"?"+encoded,
-                               prompt_delegate=True,
-                               inject=[cat],
-                             )
+        product = remote.query(**kwargs)
         # callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
 
     assert excinfo.value.delegation_state == "submitted"
+
+    while True:
+        time.sleep(5)
+    
+        try:
+            product = remote.query(**kwargs)
+        except ddosaclient.AnalysisDelegatedException as e:
+            print("state:",e.delegation_state)
+        else:
+            print("DONE:",product)
+            break
+
+    assert hasattr(product,'skyima')
+    assert hasattr(product,'skyres')
+    assert hasattr(product,'srclres')
+
+    sr = fits.open(product.srclres)[1].data
+
+    print(sr)
+
+    assert 'NEW_1' in sr['NAME']
+    assert 'TEST_SOURCE1' in sr['NAME']
+        
+
+
+def test_mosaic_delegation_failing():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    job_id=time.strftime("%y%m%d_%H%M%S")
+    encoded=urllib.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
+
+    print("encoded:",encoded)
+
+    custom_version = "imgbins_for_"+job_id
+        
+    kwargs = dict(target="mosaic_ii_skyimage",
+                           modules=["git://ddosa", 'git://rangequery','git://ddosa_delegate'],
+                           assume=['ddosa.ImageGroups(input_scwlist=rangequery.TimeDirectionScWList)',
+                                   'rangequery.TimeDirectionScWList(\
+                                         use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                                         use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
+                                         use_max_pointings=30 \
+                                    )',
+                                   'ddosa.ghost_bustersImage(input_fail=ddosa.FailingMedia)',
+                                   'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=False, use_version="%s")'%custom_version,
+                                   'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+                           callback=default_callback+"?"+encoded,
+                           prompt_delegate=True,
+                         )
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product = remote.query(**kwargs)
+        # callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
+
+    assert excinfo.value.delegation_state == "submitted"
+
+    while True:
+        time.sleep(5)
+    
+        try:
+            product = remote.query(**kwargs)
+        except ddosaclient.AnalysisDelegatedException as e:
+            print("state:",e.delegation_state)
+        else:
+            print("DONE:",product)
+            break
+
+    assert hasattr(product,'skyima')
+    assert hasattr(product,'skyres')
+    assert hasattr(product,'srclres')
+
+    sr = fits.open(product.srclres)[1].data
+
+    print(sr)
+
+    assert 'NEW_1' in sr['NAME']
+    assert 'TEST_SOURCE1' in sr['NAME']
