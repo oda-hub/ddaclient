@@ -49,8 +49,8 @@ def test_mosaic_delegation_cat_distribute():
                                    'rangequery.TimeDirectionScWList(\
                                          use_coordinates=dict(RA=83,DEC=22,radius=5),\
                                          use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
-                                         use_max_pointings=3 \
-                                    )',
+                                         use_max_pointings=%i \
+                                    )'%int(os.environ.get("TEST_N_POINTINGS",3)),
                                    'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=False, use_version="%s")'%custom_version,
                                    'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
                            callback=default_callback+"?"+encoded,
@@ -104,8 +104,8 @@ def test_mosaic_delegation_failing():
                                    'rangequery.TimeDirectionScWList(\
                                          use_coordinates=dict(RA=83,DEC=22,radius=5),\
                                          use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
-                                         use_max_pointings=30 \
-                                    )',
+                                         use_max_pointings=%i \
+                                    )'%int(os.environ.get("TEST_N_POINTINGS",3)),
                                    'ddosa.ghost_bustersImage(input_fail=ddosa.FailingMedia)',
                                    'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=False, use_version="%s")'%custom_version,
                                    'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
@@ -126,17 +126,13 @@ def test_mosaic_delegation_failing():
             product = remote.query(**kwargs)
         except ddosaclient.AnalysisDelegatedException as e:
             print("state:",e.delegation_state)
+        except ddosaclient.WorkerException:
+            print("worker exception:",e.__class__)
+            break
+        except Exception as e:
+            print("undefined failure:",e.__class__,e)
+            raise
         else:
             print("DONE:",product)
             break
 
-    assert hasattr(product,'skyima')
-    assert hasattr(product,'skyres')
-    assert hasattr(product,'srclres')
-
-    sr = fits.open(product.srclres)[1].data
-
-    print(sr)
-
-    assert 'NEW_1' in sr['NAME']
-    assert 'TEST_SOURCE1' in sr['NAME']
