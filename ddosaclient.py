@@ -40,8 +40,9 @@ class AnalysisException(Exception):
                 node,exception=node_exception
                 exception=exception.strip()
             else:
+                raise Exception("node_exception class:",node_exception.__class__)
                 try:
-                    node,exception=re.match("\('(.*?)',(.*)\)",node_exception).groups()
+                    node,exception=re.match("(\(|\[)'(.*?)',(.*)(\)|\])",str(node_exception)).groups()
                     exception=exception.strip()
                 except TypeError:
                     raise Exception("unable to interpret node exception:",node_exception)
