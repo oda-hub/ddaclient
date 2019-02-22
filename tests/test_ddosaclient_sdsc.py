@@ -25,5 +25,5 @@ def test_cat():
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
-    print("product:",product)
+    print(("product:",product))
 

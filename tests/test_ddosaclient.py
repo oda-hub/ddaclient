@@ -23,12 +23,12 @@ def test_cat():
     remote=ddosaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="CatExtract",
-                         modules=["git://ddosa","git://ddosadm"],
+                         modules=["git://ddosa"],
                          assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
-    print("product:",product)
+    print(("product:",product))
 
 def test_cat_injection():
     remote=ddosaclient.AutoRemoteDDOSA()
@@ -58,7 +58,7 @@ def test_cat_injection():
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
                          inject=[cat])
 
-    print("product:",product)
+    print(("product:",product))
 
     d=fits.open(product.cat)[1].data
     assert cat[1]['catalog'][0]['NAME'] in d['NAME']
@@ -94,7 +94,7 @@ def test_cat_injection_image():
                                  'ddosa.ii_skyimage(input_cat=gencat.CatForImage)'],
                          inject=[cat])
 
-    print("product:",product)
+    print(("product:",product))
 
     d=fits.open(product.skyres)[2].data
     assert cat[1]['catalog'][0]['NAME'] in d['NAME']
@@ -121,7 +121,7 @@ def test_cat_injection_image_empty_cat():
                                  ],
                          inject=[])
 
-    print("product:",product)
+    print(("product:",product))
 
     d=fits.open(product.skyres)[2].data
     #assert len([k[] for k in d])==0
@@ -159,7 +159,7 @@ def test_cat_injection_spectra():
 
     assert os.path.exists(product.spectrum)
 
-    print("product:",product)
+    print(("product:",product))
 
     assert hasattr(product, 'spectrum')
     d = fits.open(product.spectrum)
@@ -219,7 +219,7 @@ def test_cat_injection_lc_pick():
 
     assert os.path.exists(product.lightcurve)
 
-    print("product:",product)
+    print(("product:",product))
 
     assert hasattr(product, 'lightcurve')
     d = fits.open(product.lightcurve)
@@ -263,7 +263,7 @@ def test_cat_injection_lc():
 
     assert os.path.exists(product.lightcurve)
 
-    print("product:",product)
+    print(("product:",product))
 
     assert hasattr(product, 'lightcurve')
     d = fits.open(product.lightcurve)
@@ -282,7 +282,7 @@ def test_gti():
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
-    print("product:",product)
+    print(("product:",product))
 
 
 def test_image():
@@ -427,7 +427,7 @@ def test_sum_spectrum():
                   'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
     except ddosaclient.WorkerException as e:
         if len(e.args)>2:
-            print(e[2])
+            print((e[2]))
         raise
 
     import astropy.io.fits as fits
@@ -458,7 +458,7 @@ def test_sum_spectrum_extract_all():
                                        'process_isgri_spectra.ISGRISpectraSum(use_extract_all=True)'])
     except ddosaclient.WorkerException as e:
         if len(e.args) > 2:
-            print
+            print()
             e[2]
         raise
 
@@ -481,7 +481,7 @@ def test_fit_one():
                                    ])
 
 
-    print("product:", product)
+    print(("product:", product))
 
 def test_report_scwlist():
     remote = ddosaclient.AutoRemoteDDOSA()
@@ -501,15 +501,15 @@ def test_report_scwlist():
 
     except ddosaclient.WorkerException as e:
         if len(e.args) > 2:
-            print
+            print()
             e[2]
         raise
 
     assert hasattr(product,'scwidlist')
 
-    print(product.scwidlist)
+    print((product.scwidlist))
 
     assert len(product.scwidlist)==3
 
-    assert product.scwidlist==[u'072700080010.001', u'072700090010.001', u'072700100010.001']
+    assert product.scwidlist==['072700080010.001', '072700090010.001', '072700100010.001']
 

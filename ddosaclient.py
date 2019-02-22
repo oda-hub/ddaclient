@@ -1,8 +1,14 @@
-from __future__ import print_function
+
 
 import requests
 import os
-import urllib
+
+from future.standard_library import install_aliases
+install_aliases()
+
+from urllib.parse import urlparse, urlencode
+from urllib.request import urlopen, Request
+from urllib.error import HTTPError
 
 
 import imp
@@ -52,7 +58,7 @@ class AnalysisException(Exception):
     @classmethod
     def from_ddosa_unhandled_exception(cls, unhandled_exception):
         obj = cls("found unhandled analysis exceptions", unhandled_exception)
-        obj.exceptions = [dict([('kind',"unhandled")]+unhandled_exception.items())]
+        obj.exceptions = [dict([('kind',"unhandled")]+list(unhandled_exception.items()))]
         return obj
 
     @classmethod
@@ -62,7 +68,7 @@ class AnalysisException(Exception):
         return obj
 
     def __repr__(self):
-        r=super(AnalysisException,self)
+        r=super(AnalysisException,self).__repr__()
         r+="\n\nembedded exceptions"
         for exception in self.exceptions:
             r+="in node %s: %s"(exception['node'],exception['exception'])
@@ -112,7 +118,7 @@ class DDOSAproduct(object):
 
         log(self,r["result"])
 
-        log("found result keys:",r.keys())
+        log("found result keys:",list(r.keys()))
 
         try:
             #data=ast.literal_eval(repr(r['data']))
@@ -120,7 +126,7 @@ class DDOSAproduct(object):
         except ValueError:
             log("failed to interpret data \"",r['data'],"\"")
             log(r['data'].__class__)
-            log(r['data'].keys())
+            log(list(r['data'].keys()))
             open('tmp_data_dump.json','w').write(repr(r['data']))
             raise
 
@@ -137,7 +143,7 @@ class DDOSAproduct(object):
 
         log("cached object in",r['cached_path'])
 
-        for k,v in data.items():
+        for k,v in list(data.items()):
             log("setting attribute",k)
             setattr(self,k,v)
 
@@ -222,7 +228,7 @@ class RemoteDDOSA(object):
                 log("request will be sent to OSA10")
 
             log("request to pipeline:",p)
-            log("request to pipeline:",url+"/"+urllib.urlencode(p['params']))
+            log("request to pipeline:",url+"/"+urlencode(p['params']))
             response=requests.get(url,p['params'],auth=self.secret.get_auth())
         except Exception as e:
             log("exception in request",e,logtype="error")
@@ -247,7 +253,7 @@ class RemoteDDOSA(object):
         except Exception as e:
             log("exception decoding json:", e)
             log("raw content: ", response.content, logtype="error")
-            open("tmp_response_content.txt", "w").write(response.content)
+            open("tmp_response_content.txt", "wb").write(response.content)
             raise
 
     def __repr__(self):

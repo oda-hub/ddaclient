@@ -3,7 +3,7 @@ import requests
 import os
 import time
 import random
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 import ddosaclient
 
@@ -45,10 +45,10 @@ def test_poke_sleeping():
         time.sleep(1)
         try:
             r=remote.poke()
-            print r
+            print(r)
             break
         except ddosaclient.WorkerException as e:
-            print e
+            print(e)
 
 def test_broken_connection():
     remote=ddosaclient.RemoteDDOSA("http://127.0.1.1:1","")
@@ -254,9 +254,9 @@ def test_mosaic_delegation_cat():
 
 
     job_id=time.strftime("%y%m%d_%H%M%S")
-    encoded=urllib.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
+    encoded=urllib.parse.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
 
-    print("encoded:",encoded)
+    print(("encoded:",encoded))
 
     with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(target="mosaic_ii_skyimage",
@@ -304,9 +304,9 @@ def test_spectra_delegation_cat_distribute():
 
 
     job_id=time.strftime("%y%m%d_%H%M%S")
-    encoded=urllib.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
+    encoded=urllib.parse.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
 
-    print("encoded:",encoded)
+    print(("encoded:",encoded))
 
     with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(target="ISGRISpectraSum",
@@ -351,9 +351,9 @@ def test_mosaic_delegation_cat_distribute():
 
 
     job_id=time.strftime("%y%m%d_%H%M%S")
-    encoded=urllib.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
+    encoded=urllib.parse.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
 
-    print("encoded:",encoded)
+    print(("encoded:",encoded))
 
     with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(target="mosaic_ii_skyimage",
