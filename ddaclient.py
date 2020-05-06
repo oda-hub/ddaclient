@@ -226,6 +226,8 @@ class RemoteDDOSA(object):
             response=requests.get(url,p['params'],auth=self.secret.get_auth())
         except Exception as e:
             log("exception in request",e,logtype="error")
+            log("raw response:")
+            print(response.text)
             raise
 
         try:
@@ -247,7 +249,7 @@ class RemoteDDOSA(object):
         except Exception as e:
             log("exception decoding json:", e)
             log("raw content: ", response.content, logtype="error")
-            open("tmp_response_content.txt", "w").write(response.content)
+            open("tmp_response_content.txt", "w").write(response.text)
             raise
 
     def __repr__(self):
