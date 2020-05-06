@@ -4,7 +4,7 @@ setup_requires = ['setuptools >= 30.3.0', 'setuptools-git-version']
 
 setup(
         name='ddaclient',
-        version='1.0',
+        version='1.0.0',
         py_modules= ['ddaclient','simple_logger'],
         package_data     = {
             "": [
