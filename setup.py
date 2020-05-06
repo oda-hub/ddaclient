@@ -1,6 +1,12 @@
 from setuptools import setup
+import sys
+
 
 setup_requires = ['setuptools >= 30.3.0', 'setuptools-git-version']
+if {'pytest', 'test', 'ptr'}.intersection(sys.argv):
+    setup_requires.append('pytest-runner')
+
+
 
 setup(
         name='ddaclient',
@@ -23,9 +29,5 @@ setup(
         description="client for data-analysis services",
         long_description=open('README.md').read(),
         )
-
-
-if {'pytest', 'test', 'ptr'}.intersection(sys.argv):
-    setup_requires.append('pytest-runner')
 
 
