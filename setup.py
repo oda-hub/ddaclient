@@ -27,7 +27,7 @@ setup(
         },
         license='Creative Commons Attribution-Noncommercial-Share Alike license',
         description="client for data-analysis services",
-        long_description=open('README.md').read(),
+        long_description=open('README.md', 'rt').read(),
         )
 
 
