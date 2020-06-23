@@ -1,8 +1,6 @@
-from __future__ import print_function
-
 import requests
 import os
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 
 import imp
@@ -52,7 +50,7 @@ class AnalysisException(Exception):
     @classmethod
     def from_ddosa_unhandled_exception(cls, unhandled_exception):
         obj = cls("found unhandled analysis exceptions", unhandled_exception)
-        obj.exceptions = [dict([('kind',"unhandled")]+unhandled_exception.items())]
+        obj.exceptions = [dict([('kind',"unhandled")]+list(unhandled_exception.items()))]
         return obj
 
     @classmethod
@@ -112,7 +110,7 @@ class DDOSAproduct(object):
 
         log(self,r["result"])
 
-        log("found result keys:",r.keys())
+        log("found result keys:",list(r.keys()))
 
         try:
             #data=ast.literal_eval(repr(r['data']))
@@ -120,7 +118,7 @@ class DDOSAproduct(object):
         except ValueError:
             log("failed to interpret data \"",r['data'],"\"")
             log(r['data'].__class__)
-            log(r['data'].keys())
+            log(list(r['data'].keys()))
             open('tmp_data_dump.json','w').write(repr(r['data']))
             raise
 
@@ -222,10 +220,12 @@ class RemoteDDOSA(object):
                 log("request will be sent to OSA10")
 
             log("request to pipeline:",p)
-            log("request to pipeline:",url+"/"+urllib.urlencode(p['params']))
+            log("request to pipeline:",url+"/"+urllib.parse.urlencode(p['params']))
             response=requests.get(url,p['params'],auth=self.secret.get_auth())
         except Exception as e:
             log("exception in request",e,logtype="error")
+            log("raw response:")
+            print(response.text)
             raise
 
         try:
@@ -247,7 +247,7 @@ class RemoteDDOSA(object):
         except Exception as e:
             log("exception decoding json:", e)
             log("raw content: ", response.content, logtype="error")
-            open("tmp_response_content.txt", "w").write(response.content)
+            open("tmp_response_content.txt", "wt").write(response.text)
             raise
 
     def __repr__(self):
