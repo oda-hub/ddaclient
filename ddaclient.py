@@ -10,8 +10,14 @@ import json
 #from simple_logger import log
 import re
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
+
 def log(*a,**aa):
-    print(a,aa)
+    logger.info(repr((a,aa)))
 
 try:
     import discover_docker
@@ -89,14 +95,33 @@ class WorkerException(Exception):
 class Secret(object):
     @property
     def secret_location(self):
-        if 'DDOSA_SECRET' in os.environ:
+        if 'DDA_SECRET_LOCATION' in os.environ:
             return os.environ['DDOSA_SECRET']
         else:
-            return os.environ['HOME']+"/.secret-ddosa-client"
+            return 
 
     def get_auth(self):
-        username="remoteintegral" # keep separate from secrect to cause extra confusion!
-        password=open(self.secret_location).read().strip()
+        username = None
+        password = None
+
+        tried = {}
+        for n, m in [
+                    ("env", lambda:os.environ.get("DDA_TOKEN").strip()),
+                    ("file-home", lambda:open(os.environ['HOME']+"/.secret-ddosa-client").read().strip()),
+                    ("file-env-fn", lambda:open(os.environ['DDOSA_SECRET']).read().strip()),
+                    ]:
+            try:
+                username = "remoteintegral"
+                password = m()
+                break
+            except Exception as e:
+                logger.warning(f"failed auth method {n} {e}")
+                tried[n] = repr(e)
+
+        if password is None:
+            logger.error(f"no credentials, tried: {tried}; will asssume plain")
+            password = ""
+
         return requests.auth.HTTPBasicAuth(username, password)
 
 
@@ -233,22 +258,23 @@ class RemoteDDOSA(object):
             return DDOSAproduct(response_json,self.ddcache_root_local)
         except WorkerException as e:
         #except Exception as e:
-            log("exception exctacting json:",e)
-            log("raw content: ",response.content,logtype="error")
-            open("tmp_response_content.txt","w").write(response.content)
+            logger.warning("exception exctacting json:",e)
+            logger.warning("raw content: ",response.text)
+            open("tmp_response_content.txt","wt").write(response.text)
             worker_output=None
             if "result" in response.json():
                 if "output" in response.json()['result']:
                     worker_output=response.json()['result']['output']
                     open("tmp_response_content_result_output.txt", "w").write(worker_output)
+                    for l in worker_output.splitlines():
+                        logger.warning(f"worker >> {l}")
 
-            open("tmp_response_content.txt", "w").write(response.content)
             raise WorkerException("no json was produced!",content=response.content,worker_output=worker_output,product_exception=e)
         except Exception as e:
             log("exception decoding json:", e)
             log("raw content: ", response.content, logtype="error")
             open("tmp_response_content.txt", "wt").write(response.text)
-            raise
+            raise Exception(f"can not decode json: {response.text}")
 
     def __repr__(self):
         return "[%s: direct %s]"%(self.__class__.__name__,self.service_url)
@@ -266,7 +292,7 @@ class AutoRemoteDDOSA(RemoteDDOSA):
         raise Exception("not possible to access docker")
 
     def from_env(self,config_version):
-        url = os.environ['DDOSA_WORKER_URL']
+        url = os.environ.get('DDA_INTERFACE_URL', os.environ.get('DDOSA_WORKER_URL'))
         ddcache_root_local = os.environ['INTEGRAL_DDCACHE_ROOT']
         return url, ddcache_root_local
 
@@ -284,7 +310,7 @@ class AutoRemoteDDOSA(RemoteDDOSA):
         else:
             config_suffix = '_' + config_version
 
-        config_fn = '/home/isdc/savchenk/etc/ddosa-docker/config%s.py' % config_suffix
+        config_fn = '/etc/ddosa-docker/config%s.py' % config_suffix
         log(":", config_fn)
 
         ddosa_config = imp.load_source('ddosa_config', config_fn)
@@ -341,19 +367,30 @@ def main():
     parser.add_argument('-a',dest='assume',action='append',default=[])
     parser.add_argument('-i',dest='inject',action='append',default=[])
     parser.add_argument('-D',dest='prompt_delegate',action='store_true',default=False)
+    parser.add_argument('-v',dest='verbose',action='store_true',default=False)
 
     args = parser.parse_args()
-    log("target:",args.target)
-    log("modules:",args.modules)
-    log("assume:",args.assume)
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+
+    logger.info("target: %s",args.target)
+    logger.info("modules: %s",args.modules)
+    logger.info("assume: %s",args.assume)
     
     inject=[]
     for inject_fn in args.inject:
         inject.append(json.load(open(inject_fn)))
 
-    log("inject:",inject)
+    log("inject: %s",inject)
 
-    AutoRemoteDDOSA().query(args.target,args.modules,args.assume,inject=inject)
+    AutoRemoteDDOSA().query(
+            args.target,
+            args.modules,
+            args.assume,
+            inject=inject,
+            prompt_delegate=args.prompt_delegate,
+            )
 
 if __name__ == '__main__':
     main()
