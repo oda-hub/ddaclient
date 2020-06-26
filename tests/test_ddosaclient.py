@@ -6,9 +6,9 @@ import astropy.io.fits as fits
 
 import ddaclient
 
-scwsource_module="ddosa"
-if 'SCWDATA_SOURCE_MODULE' in os.environ:
-    scwsource_module=os.environ['SCWDATA_SOURCE_MODULE']
+
+scwsource_module=os.environ.get('SCWDATA_SOURCE_MODULE','ddosa')
+ddosa_modules=os.environ.get('DDOSA_MODULE',"git://ddosa").split(",")
 
 def test_AutoRemoteDDOSA_construct():
     remote=ddaclient.AutoRemoteDDOSA()
@@ -23,7 +23,7 @@ def test_cat():
     remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="CatExtract",
-                         modules=["git://ddosa","git://ddosadm"],
+                         modules=ddosa_modules,
                          assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
@@ -52,7 +52,7 @@ def test_cat_injection():
     ]
 
     product=remote.query(target="CatForImage",
-                         modules=["git://ddosa","git://ddosadm","git://gencat"],
+                         modules=ddosa_modules+["git://gencat"],
                          assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
@@ -87,7 +87,7 @@ def test_cat_injection_image():
     ]
 
     product=remote.query(target="ii_skyimage",
-                         modules=["ddosa","git://ddosadm","git://gencat"],
+                         modules=ddosa_modules+["git://gencat"],
                          assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")',
@@ -95,6 +95,12 @@ def test_cat_injection_image():
                          inject=[cat])
 
     print("product:",product)
+    print("product:",product.skyres)
+
+    os.path.exists(product.skyres)
+
+    os.system("ls -lotr "+product.skyres)
+
 
     d=fits.open(product.skyres)[2].data
     assert cat[1]['catalog'][0]['NAME'] in d['NAME']
@@ -114,7 +120,7 @@ def test_cat_injection_image_empty_cat():
     ]
 
     product=remote.query(target="ii_skyimage",
-                         modules=["ddosa","git://ddosadm"],
+                         modules=ddosa_modules,
                          assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")',
@@ -149,7 +155,7 @@ def test_cat_injection_spectra():
 
 
     product=remote.query(target="ii_spectra_extract",
-                         modules=["ddosa","git://ddosadm","git://gencat"],
+                         modules=["git://ddosa","git://gencat"],
                          assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
@@ -173,7 +179,7 @@ def test_lc():
     remote=ddaclient.AutoRemoteDDOSA()
 
     product = remote.query(target="lc_pick",
-                           modules=["git://ddosa", "git://ddosadm", 'git://rangequery'],
+                           modules=ddosa_modules+["git://rangequery"],
                            assume=['ddosa.LCGroups(input_scwlist=rangequery.TimeDirectionScWList)',
                     'rangequery.TimeDirectionScWList(\
                          use_coordinates=dict(RA=83,DEC=22,radius=5),\
@@ -209,7 +215,7 @@ def test_cat_injection_lc_pick():
 
 
     product=remote.query(target="lc_pick",
-                         modules=["ddosa","git://ddosadm","git://gencat"],
+                         modules=ddosa_modules+["git://gencat"],
                          assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
@@ -253,7 +259,7 @@ def test_cat_injection_lc():
 
 
     product=remote.query(target="ii_lc_extract",
-                         modules=["ddosa","git://ddosadm","git://gencat"],
+                         modules=ddosa_modules+["git://gencat"],
                          assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
@@ -277,7 +283,7 @@ def test_gti():
     remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="ibis_gti",
-                         modules=["ddosa","git://ddosadm"],
+                         modules=ddosa_modules,
                          assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
@@ -289,7 +295,7 @@ def test_image():
     remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="ii_skyimage",
-                         modules=["git://ddosa","git://ddosadm"],
+                         modules=ddosa_modules,
                          assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
@@ -299,7 +305,7 @@ def test_spectrum():
     remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="ii_spectra_extract",
-                         modules=["ddosa","git://ddosadm"],
+                         modules=ddosa_modules,
                          assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
@@ -313,7 +319,7 @@ def test_spectrum_show_standard_catalog():
     remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="CatForSpectraFromImaging",
-                         modules=["ddosa","git://ddosadm"],
+                         modules=["git://ddosa"]+ddosa_data_modules,
                          assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
@@ -327,7 +333,7 @@ def test_mosaic():
     remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="Mosaic",
-              modules=["ddosa","git://ddosadm","git://osahk","git://mosaic",'git://rangequery'],
+                         modules=ddosa_modules+["git://osahk","git://mosaic",'git://rangequery'],
               assume=['mosaic.ScWImageList(\
                   input_scwlist=\
                   rangequery.TimeDirectionScWList(\
@@ -488,12 +494,12 @@ def test_report_scwlist():
 
     try:
         product = remote.query(target="ReportScWList",
-                               modules=["ddosa", "git://ddosadm",
+                               modules=["git://ddosa",
                                         "git://rangequery"],
                                assume=['rangequery.ReportScWList(\
                       input_scwlist=\
                       rangequery.TimeDirectionScWList(\
-                          use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                          use_coordinates=dict(RA=83.,DEC=22.,radius=5.),\
                           use_timespan=dict(T1="2008-04-12T11:11:11",T2="2009-04-12T11:11:11"),\
                           use_max_pointings=3 \
                           )\

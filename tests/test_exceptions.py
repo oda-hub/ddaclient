@@ -1,6 +1,7 @@
 import pytest
 import random
 import requests
+import urllib
 import os
 import time
 import astropy.io.fits as fits
@@ -131,15 +132,13 @@ def test_mosaic_ii_exception_empty():
 
     try:
         product=remote.query(target="mosaic_ii_skyimage",
-              modules=["ddosa","git://ddosadm","git://osahk","git://mosaic",'git://rangequery'],
-              assume=['ddosa.ImageGroups(\
-                  input_scwlist=\
-                  rangequery.TimeDirectionScWList(\
+              modules=["git://ddosa","git://osahk","git://mosaic",'git://rangequery'],
+              assume=['ddosa.ImageGroups(input_scwlist=rangequery.TimeDirectionScWList)',
+                  'rangequery.TimeDirectionScWList(\
                       use_coordinates=dict(RA=83,DEC=22,radius=5),\
                       use_timespan=dict(T1="2010-04-12T11:11:11",T2="2009-04-12T11:11:11"),\
                       use_max_pointings=50 \
                       )\
-                  )\
               ',
               'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
               'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
@@ -153,6 +152,34 @@ def test_mosaic_ii_exception_empty():
         print(e.exceptions)
         assert e.exceptions[0]['exception']==u'EmptyScWList()'
 
+
+def test_mosaic_exception_failed():
+    remote=ddosaclient.AutoRemoteDDOSA()
+
+    job_id=time.strftime("%y%m%d_%H%M%S")
+    encoded=urllib.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
+    custom_version = "imgbins_for_"+job_id
+
+    kwargs = dict(target="mosaic_ii_skyimage",
+                  modules=["git://ddosa"],
+                  assume=['ddosa.ImageGroups(input_scwlist=ddosa.IDScWList)',
+                       'ddosa.IDScWList(use_scwid_list=["058900660010.001"])',
+                       'ddosa.ImageBins(use_ebins=[(20,40)],use_version="%s")'%custom_version,
+                         ],
+                  prompt_delegate=True,
+                  callback="http://mock-dispatcher?"+encoded,
+                 )
+
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product = remote.query(**kwargs)
+
+        e = excinfo.value
+        print(e)
+        assert hasattr(e, 'exceptions')
+        assert len(e.exceptions) == 1
+        print(e.exceptions)
+        assert e.exceptions[0]['exception']=='NoValidScW()'
 
 
 

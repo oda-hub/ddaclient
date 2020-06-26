@@ -2,6 +2,7 @@ import pytest
 import requests
 import os
 import time
+import urllib
 import astropy.io.fits as fits
 
 import ddaclient
@@ -82,17 +83,46 @@ def test_mosaic_rangequery():
 def test_spectrum_sum():
     remote=ddaclient.AutoRemoteDDOSA()
 
-    product=remote.query(target="spe_pick",
-              modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
-              assume=['ddjemx.JMXImageSpectraGroups(\
-                  input_scwlist=\
-                  rangequery.TimeDirectionScWList(\
-                      use_coordinates=dict(RA=83,DEC=22,radius=5),\
-                      use_timespan=dict(T1="2008-04-12T11:11:11",T2="2009-04-12T11:11:11"),\
-                      use_max_pointings=2 \
-                      )\
-                  )']
-              )
+    custom_version=time.strftime("%Y%m%d_%H%M%S")
+
+    kwargs=dict(
+              target="spe_pick",
+              modules=["git://ddosa","git://ddjemx",'git://rangequery'],
+              assume=['ddjemx.JMXImageSpectraGroups(input_scwlist=rangequery.TimeDirectionScWList)',
+                      'rangequery.TimeDirectionScWList(\
+                              use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                              use_timespan=dict(T1="2008-04-12T11:11:11",T2="2009-04-12T11:11:11"),\
+                              use_max_pointings=1 \
+                          )',
+                      'ddjemx.JEnergyBins(use_version="%s",use_bins=[(5,20)])'%custom_version],
+              callback='http://mock-dispatcher?'+urllib.urlencode(dict(job_id=custom_version,session_id="test_jemx")),
+              prompt_delegate=True,
+            )
+
+    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        product=remote.query(**kwargs)
+
+    assert excinfo.value.delegation_state == "submitted"
+
+    while True:
+        time.sleep(5)
+
+        try:
+            product = remote.query(**kwargs)
+        except ddosaclient.AnalysisDelegatedException as e:
+            print("state:",e.delegation_state)
+        except ddosaclient.WorkerException:
+            print("worker exception:",e.__class__)
+            break
+        except Exception as e:
+            print("undefined failure:",e.__class__,e)
+            raise
+        else:
+            print("DONE:",product)
+            break
+
+
+    product=remote.query(**kwargs)
 
 
     assert os.path.exists(product.spectrum_Crab)

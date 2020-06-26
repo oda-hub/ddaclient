@@ -9,8 +9,11 @@ import imp
 import ast
 import json
 
-from simple_logger import log
+#from simple_logger import log
 import re
+
+def log(*a,**aa):
+    print(a,aa)
 
 try:
     import discover_docker
@@ -37,8 +40,9 @@ class AnalysisException(Exception):
                 node,exception=node_exception
                 exception=exception.strip()
             else:
+                raise Exception("node_exception class:",node_exception.__class__)
                 try:
-                    node,exception=re.match("\('(.*?)',(.*)\)",node_exception).groups()
+                    node,exception=re.match("(\(|\[)'(.*?)',(.*)(\)|\])",str(node_exception)).groups()
                     exception=exception.strip()
                 except TypeError:
                     raise Exception("unable to interpret node exception:",node_exception)
@@ -59,10 +63,11 @@ class AnalysisException(Exception):
         return obj
 
     def __repr__(self):
-        r=super(AnalysisException,self)
-        r+="\n\nembedded exceptions"
+        r=super(AnalysisException,self).__repr__()
+        r+="; embedded exceptions: "
         for exception in self.exceptions:
-            r+="in node %s: %s"(exception['node'],exception['exception'])
+            r+="in node %s: %s"%(exception.get('node','unknown node'),exception.get('exception','no comment'))
+            r+=repr(exception)+";"
         return r
 
 class WorkerException(Exception):
@@ -158,6 +163,7 @@ class RemoteDDOSA(object):
 
     def __init__(self,service_url,ddcache_root_local):
         self.service_url=service_url
+
         self.ddcache_root_local=ddcache_root_local
 
         self.secret=Secret()
@@ -209,9 +215,17 @@ class RemoteDDOSA(object):
     def query(self,target,modules=[],assume=[],inject=[],prompt_delegate=False,callback=None):
         try:
             p=self.prepare_request(target,modules,assume,inject,prompt_delegate,callback)
+            url=p['url']
+
+            if any(["osa11" in module for module in modules]): # monkey patch
+                log("request will be sent to OSA11")
+                url=url.replace("interface-worker","interface-worker-osa11")
+            else:
+                log("request will be sent to OSA10")
+
             log("request to pipeline:",p)
-            log("request to pipeline:",p['url']+"/"+urllib.urlencode(p['params']))
-            response=requests.get(p['url'],p['params'],auth=self.secret.get_auth())
+            log("request to pipeline:",url+"/"+urllib.urlencode(p['params']))
+            response=requests.get(url,p['params'],auth=self.secret.get_auth())
         except Exception as e:
             log("exception in request",e,logtype="error")
             raise

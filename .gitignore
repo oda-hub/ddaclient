@@ -1,0 +1,7 @@
+__pycache__
+.idea
+.cache
+dda-.*
+build
+ddaclient.egg-info
+dist
