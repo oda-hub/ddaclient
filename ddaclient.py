@@ -107,6 +107,7 @@ class Secret(object):
         tried = {}
         for n, m in [
                     ("env", lambda:os.environ.get("DDA_TOKEN").strip()),
+                    ("env-usertoken", lambda:os.environ.get("DDA_USER_TOKEN").strip()),
                     ("file-home", lambda:open(os.environ['HOME']+"/.secret-ddosa-client").read().strip()),
                     ("file-env-fn", lambda:open(os.environ['DDOSA_SECRET']).read().strip()),
                     ]:
@@ -233,7 +234,7 @@ class RemoteDDOSA(object):
     def poke(self):
         return self.query("poke")
 
-    def query(self,target,modules=[],assume=[],inject=[],prompt_delegate=False,callback=None):
+    def query(self,target,modules=[],assume=[],inject=[],prompt_delegate=True,callback=None):
         try:
             p=self.prepare_request(target,modules,assume,inject,prompt_delegate,callback)
             url=p['url']
@@ -340,7 +341,7 @@ def main():
     parser.add_argument('-m',dest='modules',action='append',default=[])
     parser.add_argument('-a',dest='assume',action='append',default=[])
     parser.add_argument('-i',dest='inject',action='append',default=[])
-    parser.add_argument('-D',dest='prompt_delegate',action='store_true',default=False)
+    parser.add_argument('-D',dest='prompt_delegate',action='store_true',default=True)
     parser.add_argument('-v',dest='verbose',action='store_true',default=False)
 
     args = parser.parse_args()
