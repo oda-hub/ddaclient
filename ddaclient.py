@@ -203,7 +203,7 @@ class RemoteDDOSA(object):
             raise Exception("adapter %s not allowed!"%adapter)
         self._service_url=service_url
 
-    def prepare_request(self,target,modules=[],assume=[],inject=[],prompt_delegate=False,callback=None):
+    def prepare_request(self,target,modules=[],assume=[],inject=[],prompt_delegate=True,callback=None):
         log("modules", ",".join(modules))
         log("assume", ",".join(assume))
         log("service url:",self.service_url)
@@ -295,34 +295,9 @@ class AutoRemoteDDOSA(RemoteDDOSA):
         ddcache_root_local = os.environ['INTEGRAL_DDCACHE_ROOT']
         return url, ddcache_root_local
 
-    def from_config(self,config_version):
-        if config_version is None:
-            if 'DDOSA_WORKER_VERSION' in os.environ:
-                config_version = os.environ['DDOSA_WORKER_VERSION']
-            else:
-                config_version = "devel"
-
-        log("from config:", config_version)
-
-        if config_version == "":
-            config_suffix = ''
-        else:
-            config_suffix = '_' + config_version
-
-        config_fn = '/etc/ddosa-docker/config%s.py' % config_suffix
-        log(":", config_fn)
-
-        ddosa_config = imp.load_source('ddosa_config', config_fn)
-
-        ddcache_root_local = ddosa_config.ddcache_root_local
-        url = ddosa_config.url
-
-        return url, ddcache_root_local
-
     def discovery_methods(self):
         return [
                     'from_env',
-                    'from_config',
             ]
 
 
