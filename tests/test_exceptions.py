@@ -1,7 +1,7 @@
 import pytest
 import random
 import requests
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import os
 import time
 import astropy.io.fits as fits
@@ -39,7 +39,7 @@ def test_failing_request():
         print(e)
         assert hasattr(e, 'exceptions')
         assert len(e.exceptions) == 1
-        print(e.exceptions)
+        print((e.exceptions))
         assert e.exceptions[0]['requested_by'] == '+FailingMedia.v0 output_required_by_parent +FailingMedia.v0 command_line'
 
 def test_delegated_failing_request():
@@ -96,7 +96,7 @@ def test_handled_exception():
         print(e)
         assert hasattr(e,'exceptions')
         assert len(e.exceptions)==1
-        print(e.exceptions)
+        print((e.exceptions))
         assert e.exceptions[0]['node']=="ScWData"
 
 def test_mosaic_exception_empty():
@@ -121,8 +121,8 @@ def test_mosaic_exception_empty():
         print(e)
         assert hasattr(e, 'exceptions')
         assert len(e.exceptions) == 1
-        print(e.exceptions)
-        assert e.exceptions[0]['exception']==u'EmptyScWList()'
+        print((e.exceptions))
+        assert e.exceptions[0]['exception']=='EmptyScWList()'
 
 
 
@@ -149,15 +149,15 @@ def test_mosaic_ii_exception_empty():
         print(e)
         assert hasattr(e, 'exceptions')
         assert len(e.exceptions) == 1
-        print(e.exceptions)
-        assert e.exceptions[0]['exception']==u'EmptyScWList()'
+        print((e.exceptions))
+        assert e.exceptions[0]['exception']=='EmptyScWList()'
 
 
 def test_mosaic_exception_failed():
     remote=ddosaclient.AutoRemoteDDOSA()
 
     job_id=time.strftime("%y%m%d_%H%M%S")
-    encoded=urllib.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
+    encoded=urllib.parse.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
     custom_version = "imgbins_for_"+job_id
 
     kwargs = dict(target="mosaic_ii_skyimage",
@@ -178,7 +178,7 @@ def test_mosaic_exception_failed():
         print(e)
         assert hasattr(e, 'exceptions')
         assert len(e.exceptions) == 1
-        print(e.exceptions)
+        print((e.exceptions))
         assert e.exceptions[0]['exception']=='NoValidScW()'
 
 
@@ -207,14 +207,14 @@ def test_sum_spectrum_empty():
 
     except ddosaclient.WorkerException as e:
         if len(e.args) > 2:
-            print(e[2])
+            print((e[2]))
         raise
     except ddosaclient.AnalysisException as e:
         print(e)
         assert hasattr(e, 'exceptions')
         assert len(e.exceptions) == 1
-        print(e.exceptions)
-        assert e.exceptions[0]['exception']==u'EmptyScWList()'
+        print((e.exceptions))
+        assert e.exceptions[0]['exception']=='EmptyScWList()'
 
 
 def test_lc_pick_empty():
@@ -241,13 +241,13 @@ def test_lc_pick_empty():
 
     except ddosaclient.WorkerException as e:
         if len(e.args) > 2:
-            print(e[2])
+            print((e[2]))
         raise
     except ddosaclient.AnalysisException as e:
         print(e)
         assert hasattr(e, 'exceptions')
         assert len(e.exceptions) == 1
-        print(e.exceptions)
-        assert e.exceptions[0]['exception']==u'EmptyScWList()'
+        print((e.exceptions))
+        assert e.exceptions[0]['exception']=='EmptyScWList()'
 
 

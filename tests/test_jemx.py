@@ -2,7 +2,7 @@ import pytest
 import requests
 import os
 import time
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import astropy.io.fits as fits
 
 import ddosaclient
@@ -95,7 +95,7 @@ def test_spectrum_sum():
                               use_max_pointings=1 \
                           )',
                       'ddjemx.JEnergyBins(use_version="%s",use_bins=[(5,20)])'%custom_version],
-              callback='http://mock-dispatcher?'+urllib.urlencode(dict(job_id=custom_version,session_id="test_jemx")),
+              callback='http://mock-dispatcher?'+urllib.parse.urlencode(dict(job_id=custom_version,session_id="test_jemx")),
               prompt_delegate=True,
             )
 
@@ -110,15 +110,15 @@ def test_spectrum_sum():
         try:
             product = remote.query(**kwargs)
         except ddosaclient.AnalysisDelegatedException as e:
-            print("state:",e.delegation_state)
+            print(("state:",e.delegation_state))
         except ddosaclient.WorkerException:
-            print("worker exception:",e.__class__)
+            print(("worker exception:",e.__class__))
             break
         except Exception as e:
-            print("undefined failure:",e.__class__,e)
+            print(("undefined failure:",e.__class__,e))
             raise
         else:
-            print("DONE:",product)
+            print(("DONE:",product))
             break
 
 

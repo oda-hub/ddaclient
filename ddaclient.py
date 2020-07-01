@@ -160,7 +160,7 @@ class DDOSAproduct(object):
 
         log("cached object in",r['cached_path'])
 
-        for k,v in data.items():
+        for k,v in list(data.items()):
             log("setting attribute",k)
             setattr(self,k,v)
 
@@ -247,10 +247,9 @@ class RemoteDDOSA(object):
             log("request to pipeline:",p)
             log("request to pipeline:",url+"/"+urllib.parse.urlencode(p['params']))
             response=requests.get(url,p['params'],auth=self.secret.get_auth())
+            print((response.text))
         except Exception as e:
             log("exception in request",e,logtype="error")
-            log("raw response:")
-            print(response.text)
             raise
 
         try:

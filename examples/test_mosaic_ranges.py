@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 
 import json
 import ast
@@ -41,7 +41,7 @@ r=dc.RemoteDDOSA(url)\
 
 print(r["result"])
 
-print(r.keys())
+print(list(r.keys()))
 
 data=ast.literal_eval(str(r['data']))
         
@@ -50,7 +50,7 @@ print("jsonifiable data dumped to data.json")
 
 print("cached object in",r['cached_path'])
 
-for k,v in data.items():
+for k,v in list(data.items()):
     try:
         if v[0]=="DataFile":
             print("data file attached:",k,(r['cached_path'][0].replace("data/ddcache",ddcache_root_local)+"/"+v[1]).replace("//","/")+".gz")

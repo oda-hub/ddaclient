@@ -3,7 +3,7 @@ import requests
 import os
 import time
 import random
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import astropy.io.fits as fits
 
 import ddosaclient
@@ -37,9 +37,9 @@ def test_mosaic_delegation_cat_distribute():
 
 
     job_id=time.strftime("%y%m%d_%H%M%S")
-    encoded=urllib.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
+    encoded=urllib.parse.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
 
-    print("encoded:",encoded)
+    print(("encoded:",encoded))
 
     custom_version = "imgbins_for_"+job_id
         
@@ -70,9 +70,9 @@ def test_mosaic_delegation_cat_distribute():
         try:
             product = remote.query(**kwargs)
         except ddosaclient.AnalysisDelegatedException as e:
-            print("state:",e.delegation_state)
+            print(("state:",e.delegation_state))
         else:
-            print("DONE:",product)
+            print(("DONE:",product))
             break
 
     assert hasattr(product,'skyima')
@@ -116,8 +116,8 @@ def test_mosaic_parallel():
     
     for sub_version in range(3):
         job_id=time.strftime("%y%m%d_%H%M%S")+"_%i"%sub_version
-        encoded=urllib.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
-        print("encoded:",encoded)
+        encoded=urllib.parse.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
+        print(("encoded:",encoded))
         custom_version = "imgbins_for_"+job_id
         kwargs_sets[custom_version]=dict(target="mosaic_ii_skyimage",
                            modules=["git://ddosa", 'git://rangequery','git://gencat/dev','git://ddosa_delegate'],
@@ -136,7 +136,7 @@ def test_mosaic_parallel():
     
     statuses = {}
 
-    for v, kwargs in kwargs_sets.items():
+    for v, kwargs in list(kwargs_sets.items()):
         with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
             product = remote.query(**kwargs)
         statuses[v]=False
@@ -148,13 +148,13 @@ def test_mosaic_parallel():
     while not all(statuses.values()):
         time.sleep(5)
     
-        for v, kwargs in kwargs_sets.items():
+        for v, kwargs in list(kwargs_sets.items()):
             try:
                 product = remote.query(**kwargs)
             except ddosaclient.AnalysisDelegatedException as e:
-                print("state:",e.delegation_state)
+                print(("state:",e.delegation_state))
             else:
-                print("DONE:",product)
+                print(("DONE:",product))
                 statuses[v]=True
 
                 assert hasattr(product,'skyima')
@@ -173,9 +173,9 @@ def test_mosaic_delegation_failing():
     remote=ddosaclient.AutoRemoteDDOSA()
 
     job_id=time.strftime("%y%m%d_%H%M%S")
-    encoded=urllib.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
+    encoded=urllib.parse.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
 
-    print("encoded:",encoded)
+    print(("encoded:",encoded))
 
     custom_version = "imgbins_for_"+job_id
         
@@ -206,14 +206,14 @@ def test_mosaic_delegation_failing():
         try:
             product = remote.query(**kwargs)
         except ddosaclient.AnalysisDelegatedException as e:
-            print("state:",e.delegation_state)
+            print(("state:",e.delegation_state))
         except ddosaclient.WorkerException:
-            print("worker exception:",e.__class__)
+            print(("worker exception:",e.__class__))
             break
         except Exception as e:
-            print("undefined failure:",e.__class__,e)
+            print(("undefined failure:",e.__class__,e))
             raise
         else:
-            print("DONE:",product)
+            print(("DONE:",product))
             break
 
