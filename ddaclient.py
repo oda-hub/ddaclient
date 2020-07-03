@@ -12,6 +12,8 @@ import re
 
 import logging
 
+from pscolors import render
+
 logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
@@ -38,9 +40,9 @@ class AnalysisException(Exception):
         obj=cls("found analysis exceptions", analysis_exceptions)
         obj.exceptions=[]
         for node_exception in analysis_exceptions:
-            log("found analysis exception:", node_exception)
+            logger.error("found analysis exception: %s", node_exception)
 
-            if isinstance(node_exception,list) and len(node_exception)==2:
+            if isinstance(node_exception, list) and len(node_exception)==2:
                 node,exception=node_exception
                 exception=exception.strip()
             else:
@@ -66,10 +68,13 @@ class AnalysisException(Exception):
         return obj
 
     def __repr__(self):
-        r=super(AnalysisException,self)
-        r+="\n\nembedded exceptions"
+        r = super().__repr__()
+        r += "\n\nembedded exceptions"
         for exception in self.exceptions:
-            r+="in node %s: %s"(exception['node'],exception['exception'])
+            if 'node' in exception:
+                r += "in node %s: %s"%(exception['node'],exception['exception'])
+            else:
+                r += "no node %s"%repr(exception)
         return r
 
 class WorkerException(Exception):
@@ -270,6 +275,9 @@ class RemoteDDOSA(object):
                         logger.warning(f"worker >> {l}")
 
             raise WorkerException("no json was produced!",content=response.content,worker_output=worker_output,product_exception=e)
+        except AnalysisDelegatedException as e:
+            logger.info("passing through delegated exception: %s", e)
+            raise
         except Exception as e:
             logger.error("exception decoding json: %s", repr(e))
             logger.error("raw content: %s", response.content)
@@ -359,13 +367,16 @@ def main():
 
     log("inject: %s",inject)
 
-    AutoRemoteDDOSA().query(
-            args.target,
-            args.modules,
-            args.assume,
-            inject=inject,
-            prompt_delegate=args.prompt_delegate,
-            )
+    try:
+        AutoRemoteDDOSA().query(
+                args.target,
+                args.modules,
+                args.assume,
+                inject=inject,
+                prompt_delegate=args.prompt_delegate,
+                )
+    except AnalysisDelegatedException:
+        logger.info(render("{MAGENTA}analysis delegated{/}"))
 
 if __name__ == '__main__':
     main()
