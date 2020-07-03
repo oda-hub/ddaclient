@@ -8,7 +8,7 @@ if {'pytest', 'test', 'ptr'}.intersection(sys.argv):
 
 setup(
         name='ddaclient',
-        version='1.1.6-dev0',
+        version='1.1.6',
         py_modules= ['ddaclient','simple_logger'],
         package_data     = {
             "": [
