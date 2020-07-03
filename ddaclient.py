@@ -27,6 +27,10 @@ try:
 except ImportError:
     docker_available=False
 
+
+class UnknownDDABackendProblem(Exception):
+    pass
+
 class AnalysisDelegatedException(Exception):
     def __init__(self,delegation_state):
         self.delegation_state=delegation_state
@@ -132,7 +136,7 @@ class Secret(object):
 
 
 class DDOSAproduct(object):
-    def __init__(self,ddosa_worker_response,ddcache_root_local):
+    def __init__(self,ddosa_worker_response, ddcache_root_local):
         self.ddcache_root_local=ddcache_root_local
         self.interpret_ddosa_worker_response(ddosa_worker_response)
 
@@ -161,37 +165,46 @@ class DDOSAproduct(object):
         if data is None:
             raise WorkerException("data is None, the analysis failed unexclicably")
 
+                
+        if len(r['cached_path']) > 1:
+            raise UnknownDDABackendProblem("mutliple cached paths for the object:", r['cached_path'][0])
+        elif len(r['cached_path']) == 1:
+            local_cached_path = r['cached_path'][0].replace("data/ddcache", self.ddcache_root_local)
+            logger.info("cached object in %s", r['cached_path'])
+        else:
+            local_cached_path = None
+            logger.warning("no cached path in this object")
+
         json.dump(data,open("data.json","w"), sort_keys=True, indent=4, separators=(',', ': '))
-        log("jsonifiable data dumped to data.json")
+        logger.info("jsonifiable data dumped to data.json")
 
-        log("cached object in",r['cached_path'])
+        if local_cached_path is not None:
+            for k,v in list(data.items()):
+                logger.info("setting attribute %s", k)
+                setattr(self, k, v)
 
-        for k,v in list(data.items()):
-            log("setting attribute",k)
-            setattr(self,k,v)
+                if isinstance(v, list) and len(v)>0 and v[0] == "DataFile":
 
-            try:
-                if v[0]=="DataFile":
-                    local_fn=(r['cached_path'][0].replace("data/ddcache",self.ddcache_root_local)+"/"+v[1]).replace("//","/")+".gz"
+                    local_fn=os.path.join(local_cached_path, v[1]).replace("//","/")+".gz"
                     log("data file attached:",k,local_fn)
                     setattr(self,k,local_fn)
-            except Exception as e:
-                pass
 
         if 'analysis_exceptions' in data and data['analysis_exceptions']!=[]:
             raise AnalysisException.from_ddosa_analysis_exceptions(data['analysis_exceptions'])
 
 
 
-class RemoteDDOSA(object):
+class RemoteDDOSA:
     default_modules=["git://ddosa"]
     default_assume=[]
     #"ddosadm.DataSourceConfig(use_store_files=False)"] if not ('SCWDATA_SOURCE_MODULE' in os.environ and os.environ['SCWDATA_SOURCE_MODULE']=='ddosadm') else []
 
     def __init__(self,service_url,ddcache_root_local):
-        self.service_url=service_url
+        self.service_url = service_url
+        self.ddcache_root_local = ddcache_root_local
 
-        self.ddcache_root_local=ddcache_root_local
+        if ddcache_root_local is None:
+            raise Exception(f"unable to setup {self} without ddcache_root_local")
 
         self.secret=Secret()
 
@@ -253,14 +266,14 @@ class RemoteDDOSA(object):
             log("request to pipeline:",p)
             log("request to pipeline:",url+"/"+urllib.parse.urlencode(p['params']))
             response=requests.get(url,p['params'],auth=self.secret.get_auth())
-            print((response.text))
+            logger.debug(response.text)
         except Exception as e:
             log("exception in request",e,logtype="error")
             raise
 
         try:
             response_json=response.json()
-            return DDOSAproduct(response_json,self.ddcache_root_local)
+            return DDOSAproduct(response_json, self.ddcache_root_local)
         except WorkerException as e:
         #except Exception as e:
             logger.warning("exception exctacting json:",e)
@@ -280,24 +293,14 @@ class RemoteDDOSA(object):
             raise
         except Exception as e:
             logger.error("exception decoding json: %s", repr(e))
-            logger.error("raw content: %s", response.content)
+            logger.error("raw response stored to tmp_response_content.txt")
             open("tmp_response_content.txt", "wt").write(response.text)
-            raise Exception(f"can not decode json: {response.text}")
+            raise Exception(f"can not decode or interpret json: {response.text[:200]}...")
 
     def __repr__(self):
         return "[%s: direct %s]"%(self.__class__.__name__,self.service_url)
 
 class AutoRemoteDDOSA(RemoteDDOSA):
-
-    def from_docker(self,config_version):
-        if config_version == "docker_any" and docker_available:
-            c = discover_docker.DDOSAWorkerContainer()
-
-            url = c.url
-            ddcache_root_local = c.ddcache_root
-            log("managed to read from docker:")
-            return url,ddcache_root_local
-        raise Exception("not possible to access docker")
 
     def from_env(self,config_version):
         url = os.environ.get('DDA_INTERFACE_URL', os.environ.get('DDOSA_WORKER_URL'))
@@ -330,7 +333,7 @@ class AutoRemoteDDOSA(RemoteDDOSA):
         log("url:",url)
         log("ddcache_root:",ddcache_root_local)
 
-        super(AutoRemoteDDOSA,self).__init__(url,ddcache_root_local)
+        super().__init__(url,ddcache_root_local)
 
 
 
@@ -357,26 +360,33 @@ def main():
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    logger.info("target: %s",args.target)
-    logger.info("modules: %s",args.modules)
-    logger.info("assume: %s",args.assume)
-    
-    inject=[]
-    for inject_fn in args.inject:
-        inject.append(json.load(open(inject_fn)))
 
-    log("inject: %s",inject)
+    if args.target == "poke":
 
-    try:
-        AutoRemoteDDOSA().query(
-                args.target,
-                args.modules,
-                args.assume,
-                inject=inject,
-                prompt_delegate=args.prompt_delegate,
-                )
-    except AnalysisDelegatedException:
-        logger.info(render("{MAGENTA}analysis delegated{/}"))
+        AutoRemoteDDOSA().poke()
+
+    else:
+
+        logger.info("target: %s",args.target)
+        logger.info("modules: %s",args.modules)
+        logger.info("assume: %s",args.assume)
+        
+        inject=[]
+        for inject_fn in args.inject:
+            inject.append(json.load(open(inject_fn)))
+
+        log("inject: %s",inject)
+
+        try:
+            AutoRemoteDDOSA().query(
+                    args.target,
+                    args.modules,
+                    args.assume,
+                    inject=inject,
+                    prompt_delegate=args.prompt_delegate,
+                    )
+        except AnalysisDelegatedException:
+            logger.info(render("{MAGENTA}analysis delegated{/}"))
 
 if __name__ == '__main__':
     main()
