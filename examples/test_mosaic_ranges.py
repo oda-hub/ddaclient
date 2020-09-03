@@ -2,7 +2,7 @@
 
 import json
 import ast
-import ddosaclient as dc
+import ddaclient as dc
 import discover_docker
 import imp
 

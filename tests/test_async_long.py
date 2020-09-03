@@ -6,7 +6,7 @@ import random
 import urllib.request, urllib.parse, urllib.error
 import astropy.io.fits as fits
 
-import ddosaclient
+import ddaclient
 
 test_scw=os.environ.get('TEST_SCW',"010200210010.001")
 test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420010.001","005100430010.001"]')
@@ -14,7 +14,7 @@ test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420
 default_callback="http://mock-dispatcher.dev:6001/callback"
 
 def test_mosaic_delegation_cat_distribute():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     random_ra=83+(random.random()-0.5)*5
     cat = ['SourceCatalog',
@@ -58,7 +58,7 @@ def test_mosaic_delegation_cat_distribute():
                            inject=[cat],
                          )
 
-    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(**kwargs)
         # callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
 
@@ -69,7 +69,7 @@ def test_mosaic_delegation_cat_distribute():
     
         try:
             product = remote.query(**kwargs)
-        except ddosaclient.AnalysisDelegatedException as e:
+        except ddaclient.AnalysisDelegatedException as e:
             print(("state:",e.delegation_state))
         else:
             print(("DONE:",product))
@@ -87,7 +87,7 @@ def test_mosaic_delegation_cat_distribute():
     assert 'TEST_SOURCE1' in sr['NAME']
         
 def test_mosaic_parallel():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     random_ra=83+(random.random()-0.5)*5
     cat = ['SourceCatalog',
@@ -137,7 +137,7 @@ def test_mosaic_parallel():
     statuses = {}
 
     for v, kwargs in list(kwargs_sets.items()):
-        with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+        with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
             product = remote.query(**kwargs)
         statuses[v]=False
         time.sleep(5)
@@ -151,7 +151,7 @@ def test_mosaic_parallel():
         for v, kwargs in list(kwargs_sets.items()):
             try:
                 product = remote.query(**kwargs)
-            except ddosaclient.AnalysisDelegatedException as e:
+            except ddaclient.AnalysisDelegatedException as e:
                 print(("state:",e.delegation_state))
             else:
                 print(("DONE:",product))
@@ -170,7 +170,7 @@ def test_mosaic_parallel():
 
 
 def test_mosaic_delegation_failing():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     job_id=time.strftime("%y%m%d_%H%M%S")
     encoded=urllib.parse.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
@@ -194,7 +194,7 @@ def test_mosaic_delegation_failing():
                            prompt_delegate=True,
                          )
 
-    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(**kwargs)
         # callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
 
@@ -205,9 +205,9 @@ def test_mosaic_delegation_failing():
     
         try:
             product = remote.query(**kwargs)
-        except ddosaclient.AnalysisDelegatedException as e:
+        except ddaclient.AnalysisDelegatedException as e:
             print(("state:",e.delegation_state))
-        except ddosaclient.WorkerException:
+        except ddaclient.WorkerException:
             print(("worker exception:",e.__class__))
             break
         except Exception as e:

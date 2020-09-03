@@ -6,7 +6,7 @@ import os
 import time
 import astropy.io.fits as fits
 
-import ddosaclient
+import ddaclient
 
 scwsource_module="ddosa"
 if 'SCWDATA_SOURCE_MODULE' in os.environ:
@@ -15,7 +15,7 @@ if 'SCWDATA_SOURCE_MODULE' in os.environ:
 
 
 def test_broken_connection():
-    remote=ddosaclient.RemoteDDOSA("http://127.0.1.1:1","")
+    remote=ddaclient.RemoteDDOSA("http://127.0.1.1:1","")
 
     with pytest.raises(requests.ConnectionError):
         product=remote.query(target="ii_spectra_extract",
@@ -25,7 +25,7 @@ def test_broken_connection():
                                      'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
 def test_failing_request():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     #with pytest.raises(requests.ConnectionError):
 
@@ -35,7 +35,7 @@ def test_failing_request():
                              assume=[scwsource_module+'.ScWData(input_scwid="035200250010.001")',
                                      'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                      'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
-    except ddosaclient.AnalysisException as e:
+    except ddaclient.AnalysisException as e:
         print(e)
         assert hasattr(e, 'exceptions')
         assert len(e.exceptions) == 1
@@ -43,7 +43,7 @@ def test_failing_request():
         assert e.exceptions[0]['requested_by'] == '+FailingMedia.v0 output_required_by_parent +FailingMedia.v0 command_line'
 
 def test_delegated_failing_request():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     #with pytest.raises(requests.ConnectionError):
 
@@ -57,15 +57,15 @@ def test_delegated_failing_request():
                             prompt_delegate=True,
                             callback="file:///data/ddcache/test_callback",
                             )
-    except ddosaclient.AnalysisDelegatedException:
+    except ddaclient.AnalysisDelegatedException:
         pass
 
 def test_bad_request():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     #with pytest.raises(requests.ConnectionError):
 
-    with pytest.raises(ddosaclient.WorkerException):
+    with pytest.raises(ddaclient.WorkerException):
         product=remote.query(target="Undefined",
                              modules=["ddosa","git://ddosadm"],
                              assume=[scwsource_module+'.ScWData(input_scwid="035200250010.001")',
@@ -73,9 +73,9 @@ def test_bad_request():
                                      'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
 def test_graph_exception():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
-    with pytest.raises(ddosaclient.AnalysisException):
+    with pytest.raises(ddaclient.AnalysisException):
         product=remote.query(target="CatExtract",
                          modules=["ddosa","git://ddosadm"],
                          assume=['ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
@@ -84,7 +84,7 @@ def test_graph_exception():
 
 
 def test_handled_exception():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     try:
         product=remote.query(target="CatExtract",
@@ -92,7 +92,7 @@ def test_handled_exception():
                          assume=[scwsource_module+'.ScWData(input_scwid="935200230010.001")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
-    except ddosaclient.AnalysisException as e:
+    except ddaclient.AnalysisException as e:
         print(e)
         assert hasattr(e,'exceptions')
         assert len(e.exceptions)==1
@@ -100,7 +100,7 @@ def test_handled_exception():
         assert e.exceptions[0]['node']=="ScWData"
 
 def test_mosaic_exception_empty():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     try:
         product=remote.query(target="Mosaic",
@@ -117,7 +117,7 @@ def test_mosaic_exception_empty():
               'mosaic.Mosaic(use_pixdivide=4)',
               'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
               'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
-    except ddosaclient.AnalysisException as e:
+    except ddaclient.AnalysisException as e:
         print(e)
         assert hasattr(e, 'exceptions')
         assert len(e.exceptions) == 1
@@ -128,7 +128,7 @@ def test_mosaic_exception_empty():
 
 
 def test_mosaic_ii_exception_empty():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     try:
         product=remote.query(target="mosaic_ii_skyimage",
@@ -145,7 +145,7 @@ def test_mosaic_ii_exception_empty():
 
         assert os.path.exists(product.skyima)
 
-    except ddosaclient.AnalysisException as e:
+    except ddaclient.AnalysisException as e:
         print(e)
         assert hasattr(e, 'exceptions')
         assert len(e.exceptions) == 1
@@ -154,7 +154,7 @@ def test_mosaic_ii_exception_empty():
 
 
 def test_mosaic_exception_failed():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     job_id=time.strftime("%y%m%d_%H%M%S")
     encoded=urllib.parse.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
@@ -171,7 +171,7 @@ def test_mosaic_exception_failed():
                  )
 
 
-    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(**kwargs)
 
         e = excinfo.value
@@ -184,7 +184,7 @@ def test_mosaic_exception_failed():
 
 
 def test_sum_spectrum_empty():
-    remote = ddosaclient.AutoRemoteDDOSA()
+    remote = ddaclient.AutoRemoteDDOSA()
 
     try:
         product = remote.query(target="ISGRISpectraSum",
@@ -205,11 +205,11 @@ def test_sum_spectrum_empty():
         assert fits.open(product.isgri_sum_Crab)[1].header['EXPOSURE'] > 3000
         # assert os.path.exists(product.spectrum)
 
-    except ddosaclient.WorkerException as e:
+    except ddaclient.WorkerException as e:
         if len(e.args) > 2:
             print((e[2]))
         raise
-    except ddosaclient.AnalysisException as e:
+    except ddaclient.AnalysisException as e:
         print(e)
         assert hasattr(e, 'exceptions')
         assert len(e.exceptions) == 1
@@ -218,7 +218,7 @@ def test_sum_spectrum_empty():
 
 
 def test_lc_pick_empty():
-    remote = ddosaclient.AutoRemoteDDOSA()
+    remote = ddaclient.AutoRemoteDDOSA()
 
     try:
         product = remote.query(target="lc_pick",
@@ -239,11 +239,11 @@ def test_lc_pick_empty():
         assert fits.open(product.isgri_sum_Crab)[1].header['EXPOSURE'] > 3000
         # assert os.path.exists(product.spectrum)
 
-    except ddosaclient.WorkerException as e:
+    except ddaclient.WorkerException as e:
         if len(e.args) > 2:
             print((e[2]))
         raise
-    except ddosaclient.AnalysisException as e:
+    except ddaclient.AnalysisException as e:
         print(e)
         assert hasattr(e, 'exceptions')
         assert len(e.exceptions) == 1

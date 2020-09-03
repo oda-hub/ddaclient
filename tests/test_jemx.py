@@ -5,24 +5,24 @@ import time
 import urllib.request, urllib.parse, urllib.error
 import astropy.io.fits as fits
 
-import ddosaclient
+import ddaclient
 
 scwsource_module="ddosa"
 if 'SCWDATA_SOURCE_MODULE' in os.environ:
     scwsource_module=os.environ['SCWDATA_SOURCE_MODULE']
 
 def test_AutoRemoteDDOSA_construct():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
 #def test_AutoRemoteDDOSA_docker():
-#    remote=ddosaclient.AutoRemoteDDOSA(config_version="docker_any")
+#    remote=ddaclient.AutoRemoteDDOSA(config_version="docker_any")
 
 test_scw=os.environ.get('TEST_SCW',"010200210010.001")
 test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420010.001","005100430010.001"]')
 
 
 def test_single_image():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="jemx_image",
                          modules=["git://ddosa","git://ddosadm","git://ddjemx"],
@@ -31,7 +31,7 @@ def test_single_image():
     assert os.path.exists(product.skyima)
 
 def test_mosaic_osa():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="mosaic_jemx",
               modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
@@ -47,7 +47,7 @@ def test_mosaic_osa():
     assert os.path.exists(product.skyima)
 
 def test_mosaic():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="mosaic_jemx",
               modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
@@ -63,7 +63,7 @@ def test_mosaic():
     assert os.path.exists(product.skyima)
 
 def test_mosaic_rangequery():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     product=remote.query(target="mosaic_jemx",
               modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
@@ -81,7 +81,7 @@ def test_mosaic_rangequery():
     assert os.path.exists(product.skyima)
 
 def test_spectrum_sum():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDOSA()
 
     custom_version=time.strftime("%Y%m%d_%H%M%S")
 
@@ -99,7 +99,7 @@ def test_spectrum_sum():
               prompt_delegate=True,
             )
 
-    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product=remote.query(**kwargs)
 
     assert excinfo.value.delegation_state == "submitted"
@@ -109,9 +109,9 @@ def test_spectrum_sum():
 
         try:
             product = remote.query(**kwargs)
-        except ddosaclient.AnalysisDelegatedException as e:
+        except ddaclient.AnalysisDelegatedException as e:
             print(("state:",e.delegation_state))
-        except ddosaclient.WorkerException:
+        except ddaclient.WorkerException:
             print(("worker exception:",e.__class__))
             break
         except Exception as e:
