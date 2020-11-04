@@ -5,6 +5,7 @@ import urllib.request, urllib.parse, urllib.error
 
 import imp
 import ast
+import time
 import json
 
 #from simple_logger import log
@@ -276,9 +277,9 @@ class RemoteDDOSA:
             return DDOSAproduct(response_json, self.ddcache_root_local)
         except WorkerException as e:
         #except Exception as e:
-            logger.warning("exception exctacting json:",e)
-            logger.warning("raw content: ",response.text)
-            open("tmp_response_content.txt","wt").write(response.text)
+            logger.error("exception exctacting json: %s", e)
+            logger.error("raw content: %s", response.text)
+            open(f"tmp_WorkerException_response_content-{time.strftime('%Y-%m-%dT%H:%M:%S')}.txt","wt").write(response.text)
             worker_output=None
             if "result" in response.json():
                 if "output" in response.json()['result']:
@@ -294,7 +295,7 @@ class RemoteDDOSA:
         except Exception as e:
             logger.error("exception decoding json: %s", repr(e))
             logger.error("raw response stored to tmp_response_content.txt")
-            open("tmp_response_content.txt", "wt").write(response.text)
+            open(f"tmp_Exception_response_content-{time.strftime('%Y-%m-%dT%H:%M:%S')}.txt","wt").write(response.text)
             raise Exception(f"can not decode or interpret json: {response.text[:200]}...")
 
     def __repr__(self):
