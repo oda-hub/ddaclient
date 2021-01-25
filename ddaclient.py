@@ -163,7 +163,7 @@ class DDOSAproduct(object):
 
                 
         if len(r['cached_path']) > 1:
-            raise UnknownDDABackendProblem("mutliple cached paths for the object:", r['cached_path'][0])
+            raise UnknownDDABackendProblem("multiple entries in cached path for the object {r['cached_path']}")
         elif len(r['cached_path']) == 1:
             local_cached_path = r['cached_path'][0].replace("data/ddcache", self.ddcache_root_local)
             logger.info("cached object in %s", r['cached_path'])
@@ -171,8 +171,8 @@ class DDOSAproduct(object):
             local_cached_path = None
             logger.warning("no cached path in this object")
 
-        json.dump(data,open("data.json","w"), sort_keys=True, indent=4, separators=(',', ': '))
-        logger.info("jsonifiable data dumped to data.json")
+        json.dump(data,open("data_{key}.json","w"), sort_keys=True, indent=4, separators=(',', ': '))
+        logger.info("jsonifiable data dumped to data_{key}.json")
 
         if local_cached_path is not None:
             for k,v in list(data.items()):
@@ -249,6 +249,8 @@ class RemoteDDOSA:
         return self.query("poke")
 
     def query(self,target,modules=[],assume=[],inject=[],prompt_delegate=True,callback=None):
+        key = time.strftime('%Y-%m-%dT%H:%M:%S')
+
         try:
             p=self.prepare_request(target,modules,assume,inject,prompt_delegate,callback)
             url=p['url']
@@ -290,7 +292,6 @@ class RemoteDDOSA:
         except Exception as e:
             logger.error("some unknown exception in response %s", repr(e))
 
-            key = time.strftime('%Y-%m-%dT%H:%M:%S')
             fn = f"tmp_Exception_response_content-{key}.txt"
 
             logger.error("raw response stored to %s", fn)
