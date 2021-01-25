@@ -258,7 +258,7 @@ class RemoteDDOSA:
             p=self.prepare_request(target,modules,assume,inject,prompt_delegate,callback)
             url=p['url']
 
-            if any(["osa11" in module for module in modules]): # monkey patch
+            if any(["osa11" in module for module in modules]): # nogood patch, only for 1.2
                 log("request will be sent to OSA11")
                 url=url.replace("interface-worker","interface-worker-osa11")
             else:
@@ -305,7 +305,7 @@ class AutoRemoteDDOSA(RemoteDDOSA):
 
     def from_env(self,config_version):
         url = os.environ.get('DDA_INTERFACE_URL', os.environ.get('DDOSA_WORKER_URL'))
-        ddcache_root_local = os.environ['INTEGRAL_DDCACHE_ROOT']
+        ddcache_root_local = os.environ.get('INTEGRAL_DDCACHE_ROOT', os.path.join(os.getcwd(), "local-ddcache"))
         return url, ddcache_root_local
 
     def discovery_methods(self):
@@ -336,14 +336,6 @@ class AutoRemoteDDOSA(RemoteDDOSA):
 
         super().__init__(url,ddcache_root_local)
 
-
-
-class HerdedDDOSA(RemoteDDOSA):
-    def __repr__(self):
-        return "[%s: herder %s]"%(self.__class__.__name__,self.service_url)
-
-    def query(self):
-        raise Exception("not implemented!")
 
 def main():
     import argparse
