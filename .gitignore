@@ -5,3 +5,4 @@ dda-.*
 build
 ddaclient.egg-info
 dist
+data.json
