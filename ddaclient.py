@@ -8,7 +8,8 @@ import ast
 import time
 import json
 
-#from simple_logger import log
+import traceback
+
 import re
 
 import logging
@@ -21,12 +22,6 @@ logger = logging.getLogger(__name__)
 
 def log(*a,**aa):
     logger.info(repr((a,aa)))
-
-try:
-    import discover_docker
-    docker_available=True
-except ImportError:
-    docker_available=False
 
 
 class UnknownDDABackendProblem(Exception):
@@ -196,8 +191,8 @@ class DDOSAproduct(object):
 
 
 class RemoteDDOSA:
-    default_modules=["git://ddosa"]
-    default_assume=[]
+    default_modules = ["git://ddosa"]
+    default_assume = []  # type: list
     #"ddosadm.DataSourceConfig(use_store_files=False)"] if not ('SCWDATA_SOURCE_MODULE' in os.environ and os.environ['SCWDATA_SOURCE_MODULE']=='ddosadm') else []
 
     def __init__(self,service_url,ddcache_root_local):
@@ -277,7 +272,7 @@ class RemoteDDOSA:
             return DDOSAproduct(response_json, self.ddcache_root_local)
         except WorkerException as e:
         #except Exception as e:
-            logger.error("exception exctacting json: %s", e)
+            logger.error("problem interpretting request: %s", e)
             logger.error("raw content: %s", response.text)
             open(f"tmp_WorkerException_response_content-{time.strftime('%Y-%m-%dT%H:%M:%S')}.txt","wt").write(response.text)
             worker_output=None
@@ -293,10 +288,21 @@ class RemoteDDOSA:
             logger.info("passing through delegated exception: %s", e)
             raise
         except Exception as e:
-            logger.error("exception decoding json: %s", repr(e))
-            logger.error("raw response stored to tmp_response_content.txt")
-            open(f"tmp_Exception_response_content-{time.strftime('%Y-%m-%dT%H:%M:%S')}.txt","wt").write(response.text)
-            raise Exception(f"can not decode or interpret json: {response.text[:200]}...")
+            logger.error("some unknown exception in response %s", repr(e))
+
+            key = time.strftime('%Y-%m-%dT%H:%M:%S')
+            fn = f"tmp_Exception_response_content-{key}.txt"
+
+            logger.error("raw response stored to %s", fn)
+            open(fn, "wt").write(response.text)
+
+            open(f"tmp_Exception_comment-{key}.json", "wt").write(json.dumps({
+                                'exception': repr(e),
+                                'tb': traceback.format_stack(),
+                                'fexception': traceback.format_exc(),
+                            }))
+
+            raise Exception(f"UNKNOWN exception in worker {e}, response was {response.text[:200]}..., stored as {fn}")
 
     def __repr__(self):
         return "[%s: direct %s]"%(self.__class__.__name__,self.service_url)
@@ -305,6 +311,10 @@ class AutoRemoteDDOSA(RemoteDDOSA):
 
     def from_env(self,config_version):
         url = os.environ.get('DDA_INTERFACE_URL', os.environ.get('DDOSA_WORKER_URL'))
+
+        if url is None:
+            raise RuntimeError("DDA_INTERFACE_URL variable should contain url")
+
         ddcache_root_local = os.environ.get('INTEGRAL_DDCACHE_ROOT', os.path.join(os.getcwd(), "local-ddcache"))
         return url, ddcache_root_local
 
@@ -329,6 +339,8 @@ class AutoRemoteDDOSA(RemoteDDOSA):
             raise Exception("all docker discovery methods failed, tried "+repr(methods_tried))
 
         url, ddcache_root_local = result
+
+        logger.info("discovered DDA service: %s local cache %s", url, ddcache_root_local)
 
 
         log("url:",url)

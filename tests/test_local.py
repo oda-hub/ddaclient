@@ -6,6 +6,8 @@ import astropy.io.fits as fits
 
 import ddaclient
 
+pytestmark = pytest.mark.skip(reason="only async testing makes sense")
+
 
 scwsource_module=os.environ.get('SCWDATA_SOURCE_MODULE','ddosa')
 ddosa_modules=os.environ.get('DDOSA_MODULE',"git://ddosa").split(",")
