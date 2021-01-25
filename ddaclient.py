@@ -163,7 +163,7 @@ class DDOSAproduct(object):
 
                 
         if len(r['cached_path']) > 1:
-            raise UnknownDDABackendProblem("multiple entries in cached path for the object {r['cached_path']}")
+            raise UnknownDDABackendProblem(f"multiple entries in cached path for the object {r['cached_path']}")
         elif len(r['cached_path']) == 1:
             local_cached_path = r['cached_path'][0].replace("data/ddcache", self.ddcache_root_local)
             logger.info("cached object in %s", r['cached_path'])
