@@ -160,13 +160,17 @@ class DDOSAproduct(object):
 
         if data is None:
             raise WorkerException("data is None, the analysis failed unexclicably")
+        
+        if not isinstance(r['cached_path'], list):
+            raise UnknownDDABackendProblem(f"cached_path in the response should be list, but is {r['cached_path'].__class__} : {r['cached_path']}")
 
-                
-        if len(r['cached_path']) > 1:
-            raise UnknownDDABackendProblem(f"multiple entries in cached path for the object {r['cached_path']}")
-        elif len(r['cached_path']) == 1:
-            local_cached_path = r['cached_path'][0].replace("data/ddcache", self.ddcache_root_local)
-            logger.info("cached object in %s", r['cached_path'])
+        selected_cached_paths = [ c for c in r['cached_path'] if "data/ddcache" in c ]
+                        
+        if len(selected_cached_paths) > 1:
+            raise UnknownDDABackendProblem(f"multiple entries in cached path for the object {selected_cached_paths}")
+        elif len(selected_cached_paths) == 1:
+            local_cached_path = selected_cached_paths[0].replace("data/ddcache", self.ddcache_root_local)
+            logger.info("cached object in %s => %s", selected_cached_paths[0], local_cached_path)
         else:
             local_cached_path = None
             logger.warning("no cached path in this object")
