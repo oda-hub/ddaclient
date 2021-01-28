@@ -28,8 +28,8 @@ class UnknownDDABackendProblem(Exception):
     pass
 
 class AnalysisDelegatedException(Exception):
-    def __init__(self,delegation_state):
-        self.delegation_state=delegation_state
+    def __init__(self, delegation_state):
+        self.delegation_state = delegation_state
 
     def __repr__(self):
         return "[%s: %s]"%(self.__class__.__name__, self.delegation_state)
@@ -143,7 +143,7 @@ class DDOSAproduct(object):
 
         logger.debug("%s to parse \033[34m%s\033[0m", self, r["result"])
 
-        logger.info("found result keys:",list(r.keys()))
+        logger.info("found result keys: %s",list(r.keys()))
 
         try:
             #data=ast.literal_eval(repr(r['data']))
@@ -157,6 +157,11 @@ class DDOSAproduct(object):
 
         if r['exceptions']!=[] and r['exceptions']!='' and r['exceptions'] is not None:
             if r['exceptions']['exception_type']=="delegation":
+
+                if 'delegation_state' not in r['exceptions']:
+                    json.dump(r['exceptions'], open("exception.yaml", "wt"))
+                    raise Exception("exception is delegation but does not contain delegation state! dumped")
+
                 raise AnalysisDelegatedException(r['exceptions']['delegation_state'])
             raise AnalysisException.from_ddosa_unhandled_exception(r['exceptions'])
 
@@ -299,6 +304,7 @@ class RemoteDDOSA:
             logger.info("passing through delegated exception: %s", e)
             raise
         except Exception as e:
+            traceback.print_exc()
             logger.error("some unknown exception in response %s", repr(e))
 
             fn = f"tmp_Exception_response_content-{key}.txt"

@@ -13,8 +13,6 @@ test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420
                                     
 default_callback="http://mock-dispatcher.dev:6001/callback"
 
-pytestmark = pytest.mark.skip(reason="this is just too long")
-
 def test_mosaic_delegation_cat_distribute():
     remote=ddaclient.AutoRemoteDDOSA()
 
@@ -46,13 +44,13 @@ def test_mosaic_delegation_cat_distribute():
     custom_version = "imgbins_for_"+job_id
         
     kwargs = dict(target="mosaic_ii_skyimage",
-                           modules=["git://ddosa", 'git://rangequery','git://gencat/dev','git://ddosa_delegate'],
+                           modules=["git://ddosa/staging-1-3", 'git://rangequery/staging-1-3','git://gencat/staging-1-3', 'git://ddosa_delegate/staging-1-3'],
                            assume=['ddosa.ImageGroups(input_scwlist=rangequery.TimeDirectionScWList)',
                                    'rangequery.TimeDirectionScWList(\
                                          use_coordinates=dict(RA=83,DEC=22,radius=5),\
                                          use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
                                          use_max_pointings=%i \
-                                    )'%int(os.environ.get("TEST_N_POINTINGS",3)),
+                                    )'%int(os.environ.get("TEST_N_POINTINGS",2)),
                                    'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=False, use_version="%s")'%custom_version,
                                    'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
                            callback=default_callback+"?"+encoded,
