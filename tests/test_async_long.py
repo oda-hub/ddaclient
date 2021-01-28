@@ -11,12 +11,20 @@ import ddaclient
 test_scw=os.environ.get('TEST_SCW',"010200210010.001")
 test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420010.001","005100430010.001"]')
                                     
-default_callback="http://mock-dispatcher.dev:6001/callback"
+default_callback="http://oda-dispatcher:8000/"
 
-def test_mosaic_delegation_cat_distribute():
+
+@pytest.mark.parametrize("randomize_ra", [False])
+def test_mosaic_delegation_cat_distribute(randomize_ra):
     remote=ddaclient.AutoRemoteDDOSA()
 
-    random_ra=83+(random.random()-0.5)*5
+    if randomize_ra:
+        random_ra=83+(random.random()-0.5)*5
+        job_id=time.strftime("%y%m%d_%H%M%S")
+    else:
+        random_ra=83 
+        job_id="testid"
+
     cat = ['SourceCatalog',
            {
                "catalog": [
@@ -36,7 +44,6 @@ def test_mosaic_delegation_cat_distribute():
         ]
 
 
-    job_id=time.strftime("%y%m%d_%H%M%S")
     encoded=urllib.parse.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
 
     print(("encoded:",encoded))
@@ -48,7 +55,7 @@ def test_mosaic_delegation_cat_distribute():
                            assume=['ddosa.ImageGroups(input_scwlist=rangequery.TimeDirectionScWList)',
                                    'rangequery.TimeDirectionScWList(\
                                          use_coordinates=dict(RA=83,DEC=22,radius=5),\
-                                         use_timespan=dict(T1="2014-04-12T11:11:11",T2="2015-04-12T11:11:11"),\
+                                         use_timespan=dict(T1="2018-04-12T11:11:11",T2="2019-04-12T11:11:11"),\
                                          use_max_pointings=%i \
                                     )'%int(os.environ.get("TEST_N_POINTINGS",2)),
                                    'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=False, use_version="%s")'%custom_version,
@@ -58,19 +65,12 @@ def test_mosaic_delegation_cat_distribute():
                            inject=[cat],
                          )
 
-    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
-        product = remote.query(**kwargs)
-        # callback="http://intggcn01:5000/callback?job_id=1&asdsd=2",
-
-    assert excinfo.value.delegation_state == "submitted"
-
     while True:
-        time.sleep(5)
-    
         try:
             product = remote.query(**kwargs)
         except ddaclient.AnalysisDelegatedException as e:
             print(("state:",e.delegation_state))
+            time.sleep(5)
         else:
             print(("DONE:",product))
             break

@@ -158,11 +158,11 @@ class DDOSAproduct(object):
         if r['exceptions']!=[] and r['exceptions']!='' and r['exceptions'] is not None:
             if r['exceptions']['exception_type']=="delegation":
 
-                if 'delegation_state' not in r['exceptions']:
-                    json.dump(r['exceptions'], open("exception.yaml", "wt"))
-                    raise Exception("exception is delegation but does not contain delegation state! dumped")
+                #if 'delegation_state' not in r['exceptions']:
+                    #json.dump(r['exceptions'], open("exception.yaml", "wt"))
+                    #raise Exception("exception is delegation but does not contain delegation state! dumped")
 
-                raise AnalysisDelegatedException(r['exceptions']['delegation_state'])
+                raise AnalysisDelegatedException(r['exceptions'].get('delegation_state', 'unknown'))
             raise AnalysisException.from_ddosa_unhandled_exception(r['exceptions'])
 
         if data is None:
@@ -171,19 +171,24 @@ class DDOSAproduct(object):
         if not isinstance(r['cached_path'], list):
             raise UnknownDDABackendProblem(f"cached_path in the response should be list, but is {r['cached_path'].__class__} : {r['cached_path']}")
 
-        selected_cached_paths = [ c for c in r['cached_path'] if "data/ddcache" in c ]
+
+
+        selected_cached_paths = [ c for c in r['cached_path'] if "data/reduced/ddcache" in c ]
+        logger.info("ALL cached path: %s\n vs selected %s", r['cached_path'], selected_cached_paths)
+
                         
         if len(selected_cached_paths) > 1:
             raise UnknownDDABackendProblem(f"multiple entries in cached path for the object {selected_cached_paths}")
         elif len(selected_cached_paths) == 1:
-            local_cached_path = selected_cached_paths[0].replace("data/ddcache", self.ddcache_root_local)
+            local_cached_path = selected_cached_paths[0].replace("data/reduced/ddcache", self.ddcache_root_local)
             logger.info("cached object in %s => %s", selected_cached_paths[0], local_cached_path)
         else:
             local_cached_path = None
             logger.warning("no cached path in this object")
 
-        json.dump(data,open("data_{key}.json","w"), sort_keys=True, indent=4, separators=(',', ': '))
-        logger.info("jsonifiable data dumped to data_{key}.json")
+        key = time.strftime('%Y-%m-%dT%H:%M:%S')
+        json.dump(data,open(f"data_{key}.json","w"), sort_keys=True, indent=4, separators=(',', ': '))
+        logger.info(f"jsonifiable data dumped to data_{key}.json")
 
         if local_cached_path is not None:
             for k,v in list(data.items()):
@@ -195,6 +200,8 @@ class DDOSAproduct(object):
                     local_fn=os.path.join(local_cached_path, v[1]).replace("//","/")+".gz"
                     log("data file attached:",k,local_fn)
                     setattr(self,k,local_fn)
+        else:
+            logger.warning("\033[31mNO LOCAL CACHE PATH\033[0m which might be a problem")
 
         if 'analysis_exceptions' in data and data['analysis_exceptions']!=[]:
             raise AnalysisException.from_ddosa_analysis_exceptions(data['analysis_exceptions'])
