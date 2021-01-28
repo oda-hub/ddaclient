@@ -90,7 +90,7 @@ class WorkerException(Exception):
             r+="\n\nWorker output:\n"+self.worker_output
 
     def display(self):
-        log(repr(self))
+        logger.info(self)
         try:
             log(json.loads(self.content)['result']['output'])
         except Exception as e:
@@ -137,11 +137,13 @@ class DDOSAproduct(object):
         self.interpret_ddosa_worker_response(ddosa_worker_response)
 
     def interpret_ddosa_worker_response(self,r):
-        self.raw_response=r
+        self.raw_response = r
 
-        log(self,r["result"])
+        logger = logging.getLogger(self.__class__.__name__)
 
-        log("found result keys:",list(r.keys()))
+        logger.debug("%s to parse \033[34m%s\033[0m", self, r["result"])
+
+        logger.info("found result keys:",list(r.keys()))
 
         try:
             #data=ast.literal_eval(repr(r['data']))
@@ -260,24 +262,27 @@ class RemoteDDOSA:
             url=p['url']
 
             if any(["osa11" in module for module in modules]): # nogood patch, only for 1.2
-                log("request will be sent to OSA11")
+                logger.info("request will be sent to OSA11")
                 url=url.replace("interface-worker","interface-worker-osa11")
             else:
-                log("request will be sent to OSA10")
+                logger.info("request will be sent to OSA10")
 
-            log("request to pipeline:",p)
-            log("request to pipeline:",url+"/"+urllib.parse.urlencode(p['params']))
-            response=requests.get(url,p['params'],auth=self.secret.get_auth())
+            logger.info("request to pipeline: %s",p)
+            logger.info("request to pipeline: %s", url+"/"+urllib.parse.urlencode(p['params']))
+            response = requests.get(url,p['params'],auth=self.secret.get_auth())
             logger.debug(response.text)
         except Exception as e:
-            log("exception in request",e,logtype="error")
+            logger.error("exception in request %s", e)
             raise
+
+        if target == "poke":
+            logger.info("poke did not raise an exception, which is success!")
+            return
 
         try:
             response_json=response.json()
             return DDOSAproduct(response_json, self.ddcache_root_local)
         except WorkerException as e:
-        #except Exception as e:
             logger.error("problem interpretting request: %s", e)
             logger.error("raw content: %s", response.text)
             open(f"tmp_WorkerException_response_content-{time.strftime('%Y-%m-%dT%H:%M:%S')}.txt","wt").write(response.text)
@@ -289,7 +294,7 @@ class RemoteDDOSA:
                     for l in worker_output.splitlines():
                         logger.warning(f"worker >> {l}")
 
-            raise WorkerException("no json was produced!",content=response.content,worker_output=worker_output,product_exception=e)
+            raise WorkerException("no reasonable response!",content=response.content,worker_output=worker_output,product_exception=e)
         except AnalysisDelegatedException as e:
             logger.info("passing through delegated exception: %s", e)
             raise

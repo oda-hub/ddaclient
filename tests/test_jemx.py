@@ -7,6 +7,8 @@ import astropy.io.fits as fits
 
 import ddaclient
 
+pytestmark = pytest.mark.skip(reason="only async testing makes sense")
+
 scwsource_module="ddosa"
 if 'SCWDATA_SOURCE_MODULE' in os.environ:
     scwsource_module=os.environ['SCWDATA_SOURCE_MODULE']

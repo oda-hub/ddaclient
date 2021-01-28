@@ -13,6 +13,8 @@ test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420
                                     
 default_callback="http://mock-dispatcher.dev:6001/callback"
 
+pytestmark = pytest.mark.skip(reason="this is just too long")
+
 def test_mosaic_delegation_cat_distribute():
     remote=ddaclient.AutoRemoteDDOSA()
 

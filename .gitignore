@@ -6,3 +6,5 @@ build
 ddaclient.egg-info
 dist
 data.json
+tmp_*json
+tmp_*txt
