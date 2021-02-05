@@ -267,6 +267,25 @@ class RemoteDDOSA:
         return self.query("poke")
 
     def query(self,target,modules=[],assume=[],inject=[],prompt_delegate=True,callback=None):
+        n_retries = getattr(self, 'n_retries', 10)
+        for i in reversed(range(n_retries)):
+            try:
+                return self._query(target, modules, assume, inject, prompt_delegate, callback)
+            except AnalysisDelegatedException as e:
+                logger.info("passing through delegated exception: %s", e)
+                raise
+            except Exception as e:
+                logger.exception("\033[31msomething failed in query: %s\033[0m, %s / %s attempts left", e, i, n_retries)
+                if i == 0:
+                    raise
+                else:
+                    time.sleep(5)
+
+        raise RuntimeError("we should not be here")
+                
+
+
+    def _query(self,target,modules=[],assume=[],inject=[],prompt_delegate=True,callback=None):
         key = time.strftime('%Y-%m-%dT%H:%M:%S')
 
         try:
