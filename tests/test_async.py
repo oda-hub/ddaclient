@@ -58,6 +58,26 @@ def test_broken_connection():
                                      'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                      'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
+def test_analysis_exception():
+    remote=ddaclient.AutoRemoteDDA()
+
+    while True:
+        try:
+            product=remote.query(target="ibis_gti",
+                    modules=["git://ddosa/staging-1-3"],
+                             assume=['ddosa.ScWData(input_scwid="335200230010.001")',
+                                     'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                     'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
+            break
+        except ddaclient.AnalysisException as e:
+            print("found as expected exception", e)
+            return
+        except ddaclient.AnalysisDelegatedException as e:
+            print("waiting ", e)
+            time.sleep(2)
+
+    raise RuntimeError("should have raised exception!")
+
 
 
 def test_bad_request():

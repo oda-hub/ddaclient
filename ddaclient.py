@@ -163,10 +163,14 @@ class DDAproduct(object):
                     #raise Exception("exception is delegation but does not contain delegation state! dumped")
 
                 raise AnalysisDelegatedException(r['exceptions'].get('delegation_state', 'unknown'))
+
+            if r['exceptions']['exception'][0] == 'dataanalysis.core.AnalysisException':
+                raise AnalysisException.from_dda_analysis_exceptions([r['exceptions']['exception']])
+
             raise AnalysisException.from_dda_unhandled_exception(r['exceptions'])
 
         if data is None:
-            raise WorkerException("data is None, the analysis failed unexclicably")
+            raise WorkerException("data is None, the analysis failed unexcplicably")
         
         if not isinstance(r['cached_path'], list):
             raise UnknownDDABackendProblem(f"cached_path in the response should be list, but is {r['cached_path'].__class__} : {r['cached_path']}")
@@ -271,6 +275,9 @@ class RemoteDDA:
         for i in reversed(range(n_retries)):
             try:
                 return self._query(target, modules, assume, inject, prompt_delegate, callback)
+            except AnalysisException as e:
+                logger.info("passing through analysis exception: %s", e)
+                raise
             except AnalysisDelegatedException as e:
                 logger.info("passing through delegated exception: %s", e)
                 raise
@@ -326,6 +333,9 @@ class RemoteDDA:
                         logger.warning(f"worker >> {l}")
 
             raise WorkerException("no reasonable response!",content=response.content,worker_output=worker_output,product_exception=e)
+        except AnalysisException as e:
+            logger.info("passing through analysis exception: %s", e)
+            raise
         except AnalysisDelegatedException as e:
             logger.info("passing through delegated exception: %s", e)
             raise
