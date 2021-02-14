@@ -14,7 +14,7 @@ if 'SCWDATA_SOURCE_MODULE' in os.environ:
 
 @pytest.mark.skip(reason="no way of testing this outside SDSC")
 def test_cat():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     req=(remote.prepare_request("CatExtract"))
     print(req)

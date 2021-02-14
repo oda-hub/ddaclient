@@ -12,24 +12,24 @@ test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420
                                     
 default_callback="http://mock-dispatcher.dev:6001/callback"
 
-def test_AutoRemoteDDOSA_construct():
-    remote=ddaclient.AutoRemoteDDOSA()
+def test_AutoRemoteDDA_construct():
+    remote=ddaclient.AutoRemoteDDA()
 
-def test_AutoRemoteDDOSA_docker():
-    remote=ddaclient.AutoRemoteDDOSA(config_version="docker_any")
+def test_AutoRemoteDDA_docker():
+    remote=ddaclient.AutoRemoteDDA(config_version="docker_any")
 
 def test_poke():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
     remote.poke()
 
 @pytest.mark.skip(reason="obsolete")
 def test_history():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
     remote.query("history")
 
 @pytest.mark.skip(reason="obsolete")
 def test_poke_sleeping():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
     
     import threading
     
@@ -49,7 +49,7 @@ def test_poke_sleeping():
             print(e)
 
 def test_broken_connection():
-    remote=ddaclient.RemoteDDOSA("http://127.0.1.1:1","")
+    remote=ddaclient.RemoteDDA("http://127.0.1.1:1","")
 
     with pytest.raises(requests.ConnectionError):
         product=remote.query(target="ii_spectra_extract",
@@ -61,7 +61,7 @@ def test_broken_connection():
 
 
 def test_bad_request():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     #with pytest.raises(requests.ConnectionError):
 
@@ -74,7 +74,7 @@ def test_bad_request():
 
 
 def test_delegation():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     random_rev=random.randint(50,1800)
 
@@ -91,7 +91,7 @@ def test_delegation():
     assert excinfo.value.delegation_state == "submitted"
 
 def test_lc_delegation():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     random_ra=83+(random.random()-0.5)*5
 
@@ -116,7 +116,7 @@ def test_lc_delegation():
                          )
 
 def test_mosaic_delegation():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     random_ra=83+(random.random()-0.5)*5
 
@@ -139,7 +139,7 @@ def test_mosaic_delegation():
                          )
 
 def test_spectra_delegation():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(target="ISGRISpectraSum",
@@ -162,7 +162,7 @@ def test_spectra_delegation():
     assert excinfo.value.delegation_state == "submitted"
 
 def test_mosaic_delegation_cat():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     random_ra=83+(random.random()-0.5)*5
     cat = ['SourceCatalog',
@@ -212,7 +212,7 @@ def test_mosaic_delegation_cat():
     assert excinfo.value.delegation_state == "submitted"
 
 def test_spectra_delegation_cat_distribute():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     random_ra=83+(random.random()-0.5)*5
     cat = ['SourceCatalog',
@@ -259,7 +259,7 @@ def test_spectra_delegation_cat_distribute():
     assert excinfo.value.delegation_state == "submitted"
 
 def test_mosaic_delegation_cat_distribute():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     random_ra=83+(random.random()-0.5)*5
     cat = ['SourceCatalog',
@@ -306,7 +306,7 @@ def test_mosaic_delegation_cat_distribute():
     assert excinfo.value.delegation_state == "submitted"
 
 def test_jemx():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
  #   random_ra=83+(random.random()-0.5)*5
 
@@ -329,7 +329,7 @@ def test_jemx():
 
 
 def test_jemx_osa_mosaic():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
  #   random_ra=83+(random.random()-0.5)*5
 

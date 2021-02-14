@@ -15,7 +15,7 @@ if 'SCWDATA_SOURCE_MODULE' in os.environ:
 
 
 def test_broken_connection():
-    remote=ddaclient.RemoteDDOSA("http://127.0.1.1:1","")
+    remote=ddaclient.RemoteDDA("http://127.0.1.1:1","")
 
     with pytest.raises(requests.ConnectionError):
         product=remote.query(target="ii_spectra_extract",
@@ -25,7 +25,7 @@ def test_broken_connection():
                                      'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
 def test_failing_request():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     #with pytest.raises(requests.ConnectionError):
 
@@ -43,7 +43,7 @@ def test_failing_request():
         assert e.exceptions[0]['requested_by'] == '+FailingMedia.v0 output_required_by_parent +FailingMedia.v0 command_line'
 
 def test_delegated_failing_request():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     #with pytest.raises(requests.ConnectionError):
 
@@ -61,7 +61,7 @@ def test_delegated_failing_request():
         pass
 
 def test_bad_request():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     #with pytest.raises(requests.ConnectionError):
 
@@ -73,7 +73,7 @@ def test_bad_request():
                                      'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
 def test_graph_exception():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     with pytest.raises(ddaclient.AnalysisException):
         product=remote.query(target="CatExtract",
@@ -84,7 +84,7 @@ def test_graph_exception():
 
 
 def test_handled_exception():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     try:
         product=remote.query(target="CatExtract",
@@ -100,7 +100,7 @@ def test_handled_exception():
         assert e.exceptions[0]['node']=="ScWData"
 
 def test_mosaic_exception_empty():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     try:
         product=remote.query(target="Mosaic",
@@ -128,7 +128,7 @@ def test_mosaic_exception_empty():
 
 
 def test_mosaic_ii_exception_empty():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     try:
         product=remote.query(target="mosaic_ii_skyimage",
@@ -154,7 +154,7 @@ def test_mosaic_ii_exception_empty():
 
 
 def test_mosaic_exception_failed():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     job_id=time.strftime("%y%m%d_%H%M%S")
     encoded=urllib.parse.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
@@ -184,7 +184,7 @@ def test_mosaic_exception_failed():
 
 
 def test_sum_spectrum_empty():
-    remote = ddaclient.AutoRemoteDDOSA()
+    remote = ddaclient.AutoRemoteDDA()
 
     try:
         product = remote.query(target="ISGRISpectraSum",
@@ -218,7 +218,7 @@ def test_sum_spectrum_empty():
 
 
 def test_lc_pick_empty():
-    remote = ddaclient.AutoRemoteDDOSA()
+    remote = ddaclient.AutoRemoteDDA()
 
     try:
         product = remote.query(target="lc_pick",

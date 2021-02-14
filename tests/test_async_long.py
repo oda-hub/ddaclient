@@ -16,7 +16,7 @@ default_callback="http://oda-dispatcher:8000/"
 
 @pytest.mark.parametrize("randomize_ra", [False])
 def test_mosaic_delegation_cat_distribute(randomize_ra):
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     if randomize_ra:
         random_ra=83+(random.random()-0.5)*5
@@ -87,7 +87,7 @@ def test_mosaic_delegation_cat_distribute(randomize_ra):
     assert 'TEST_SOURCE1' in sr['NAME']
         
 def test_mosaic_parallel():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     random_ra=83+(random.random()-0.5)*5
     cat = ['SourceCatalog',
@@ -170,7 +170,7 @@ def test_mosaic_parallel():
 
 
 def test_mosaic_delegation_failing():
-    remote=ddaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     job_id=time.strftime("%y%m%d_%H%M%S")
     encoded=urllib.parse.urlencode(dict(job_id=job_id,session_id="test_mosaic"))
