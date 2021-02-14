@@ -36,7 +36,7 @@ class AnalysisDelegatedException(Exception):
 
 class AnalysisException(Exception):
     @classmethod
-    def from_ddosa_analysis_exceptions(cls,analysis_exceptions):
+    def from_dda_analysis_exceptions(cls,analysis_exceptions):
         obj=cls("found analysis exceptions", analysis_exceptions)
         obj.exceptions=[]
         for node_exception in analysis_exceptions:
@@ -56,7 +56,7 @@ class AnalysisException(Exception):
         return obj
 
     @classmethod
-    def from_ddosa_unhandled_exception(cls, unhandled_exception):
+    def from_dda_unhandled_exception(cls, unhandled_exception):
         obj = cls("found unhandled analysis exceptions", unhandled_exception)
         obj.exceptions = [dict([('kind',"unhandled")]+list(unhandled_exception.items()))]
         return obj
@@ -101,7 +101,7 @@ class Secret(object):
     @property
     def secret_location(self):
         if 'DDA_SECRET_LOCATION' in os.environ:
-            return os.environ['DDOSA_SECRET']
+            return os.environ['DDA_SECRET']
         else:
             return 
 
@@ -113,8 +113,8 @@ class Secret(object):
         for n, m in [
                     ("env", lambda:os.environ.get("DDA_TOKEN").strip()),
                     ("env-usertoken", lambda:os.environ.get("DDA_USER_TOKEN").strip()),
-                    ("file-home", lambda:open(os.environ['HOME']+"/.secret-ddosa-client").read().strip()),
-                    ("file-env-fn", lambda:open(os.environ['DDOSA_SECRET']).read().strip()),
+                    ("file-home", lambda:open(os.environ['HOME']+"/.secret-dda-client").read().strip()),
+                    ("file-env-fn", lambda:open(os.environ['DDA_SECRET']).read().strip()),
                     ]:
             try:
                 username = "remoteintegral"
@@ -131,12 +131,12 @@ class Secret(object):
         return requests.auth.HTTPBasicAuth(username, password)
 
 
-class DDOSAproduct(object):
-    def __init__(self,ddosa_worker_response, ddcache_root_local):
+class DDAproduct(object):
+    def __init__(self,dda_worker_response, ddcache_root_local):
         self.ddcache_root_local=ddcache_root_local
-        self.interpret_ddosa_worker_response(ddosa_worker_response)
+        self.interpret_dda_worker_response(dda_worker_response)
 
-    def interpret_ddosa_worker_response(self,r):
+    def interpret_dda_worker_response(self,r):
         self.raw_response = r
 
         logger = logging.getLogger(self.__class__.__name__)
@@ -163,7 +163,7 @@ class DDOSAproduct(object):
                     #raise Exception("exception is delegation but does not contain delegation state! dumped")
 
                 raise AnalysisDelegatedException(r['exceptions'].get('delegation_state', 'unknown'))
-            raise AnalysisException.from_ddosa_unhandled_exception(r['exceptions'])
+            raise AnalysisException.from_dda_unhandled_exception(r['exceptions'])
 
         if data is None:
             raise WorkerException("data is None, the analysis failed unexclicably")
@@ -204,14 +204,14 @@ class DDOSAproduct(object):
             logger.warning("\033[31mNO LOCAL CACHE PATH\033[0m which might be a problem")
 
         if 'analysis_exceptions' in data and data['analysis_exceptions']!=[]:
-            raise AnalysisException.from_ddosa_analysis_exceptions(data['analysis_exceptions'])
+            raise AnalysisException.from_dda_analysis_exceptions(data['analysis_exceptions'])
 
 
 
-class RemoteDDOSA:
+class RemoteDDA:
     default_modules = ["git://ddosa"]
     default_assume = []  # type: list
-    #"ddosadm.DataSourceConfig(use_store_files=False)"] if not ('SCWDATA_SOURCE_MODULE' in os.environ and os.environ['SCWDATA_SOURCE_MODULE']=='ddosadm') else []
+    #"ddadm.DataSourceConfig(use_store_files=False)"] if not ('SCWDATA_SOURCE_MODULE' in os.environ and os.environ['SCWDATA_SOURCE_MODULE']=='ddadm') else []
 
     def __init__(self,service_url,ddcache_root_local):
         self.service_url = service_url
@@ -312,7 +312,7 @@ class RemoteDDOSA:
 
         try:
             response_json=response.json()
-            return DDOSAproduct(response_json, self.ddcache_root_local)
+            return DDAproduct(response_json, self.ddcache_root_local)
         except WorkerException as e:
             logger.error("problem interpretting request: %s", e)
             logger.error("raw content: %s", response.text)
@@ -349,10 +349,10 @@ class RemoteDDOSA:
     def __repr__(self):
         return "[%s: direct %s]"%(self.__class__.__name__,self.service_url)
 
-class AutoRemoteDDOSA(RemoteDDOSA):
+class AutoRemoteDDA(RemoteDDA):
 
     def from_env(self,config_version):
-        url = os.environ.get('DDA_INTERFACE_URL', os.environ.get('DDOSA_WORKER_URL'))
+        url = os.environ.get('DDA_INTERFACE_URL', os.environ.get('DDA_WORKER_URL'))
 
         if url is None:
             raise RuntimeError("DDA_INTERFACE_URL variable should contain url")
@@ -410,7 +410,7 @@ def main():
 
     if args.target == "poke":
 
-        AutoRemoteDDOSA().poke()
+        AutoRemoteDDA().poke()
 
     else:
 
@@ -425,7 +425,7 @@ def main():
         log("inject: %s",inject)
 
         try:
-            AutoRemoteDDOSA().query(
+            AutoRemoteDDA().query(
                     args.target,
                     args.modules,
                     args.assume,
