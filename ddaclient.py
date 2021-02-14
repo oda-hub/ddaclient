@@ -186,7 +186,7 @@ class DDAproduct(object):
             local_cached_path = None
             logger.warning("no cached path in this object")
 
-        key = time.strftime('%Y-%m-%dT%H:%M:%S')
+        key = time.strftime('%Y-%m-%dT%H-%M-%S')
         json.dump(data,open(f"data_{key}.json","w"), sort_keys=True, indent=4, separators=(',', ': '))
         logger.info(f"jsonifiable data dumped to data_{key}.json")
 
@@ -286,7 +286,7 @@ class RemoteDDA:
 
 
     def _query(self,target,modules=[],assume=[],inject=[],prompt_delegate=True,callback=None):
-        key = time.strftime('%Y-%m-%dT%H:%M:%S')
+        key = time.strftime('%Y-%m-%dT%H-%M-%S')
 
         try:
             p=self.prepare_request(target,modules,assume,inject,prompt_delegate,callback)
@@ -316,7 +316,7 @@ class RemoteDDA:
         except WorkerException as e:
             logger.error("problem interpretting request: %s", e)
             logger.error("raw content: %s", response.text)
-            open(f"tmp_WorkerException_response_content-{time.strftime('%Y-%m-%dT%H:%M:%S')}.txt","wt").write(response.text)
+            open(f"tmp_WorkerException_response_content-{time.strftime('%Y-%m-%dT%H-%M-%S')}.txt","wt").write(response.text)
             worker_output=None
             if "result" in response.json():
                 if "output" in response.json()['result']:

@@ -49,7 +49,7 @@ def test_poke_sleeping():
             print(e)
 
 def test_broken_connection():
-    remote=ddaclient.RemoteDDA("http://127.0.1.1:1","")
+    remote=ddaclient.RemoteDDA("http://127.0.3.1:1","")
 
     with pytest.raises(requests.ConnectionError):
         product=remote.query(target="ii_spectra_extract",
@@ -67,10 +67,10 @@ def test_bad_request():
 
     with pytest.raises(ddaclient.WorkerException):
         product=remote.query(target="Undefined",
-                             modules=["ddosa","git://ddosadm"],
-                             assume=['ddosa.ScWData(input_scwid="035200230010.001")',
-                                     'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
-                                     'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
+                modules=["git://ddosa/staging-1-3"],
+                         assume=['ddosa.ScWData(input_scwid="035200230010.001")',
+                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                 'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
 
 def test_delegation():
