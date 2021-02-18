@@ -121,7 +121,7 @@ class Secret(object):
                 password = m()
                 break
             except Exception as e:
-                logger.warning(f"failed auth method {n} {e}")
+                logger.debug(f"failed auth method {n} {e}")
                 tried[n] = repr(e)
 
         if password is None:
