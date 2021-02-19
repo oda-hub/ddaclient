@@ -3,7 +3,9 @@ import requests
 import os
 import time
 
-import ddosaclient
+import ddaclient
+
+pytestmark = pytest.mark.skip(reason="only async testing makes sense")
 
 scwsource_module="ddosa"
 if 'SCWDATA_SOURCE_MODULE' in os.environ:
@@ -12,7 +14,7 @@ if 'SCWDATA_SOURCE_MODULE' in os.environ:
 
 @pytest.mark.skip(reason="no way of testing this outside SDSC")
 def test_cat():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     req=(remote.prepare_request("CatExtract"))
     print(req)

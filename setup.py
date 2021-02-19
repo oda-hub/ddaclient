@@ -1,9 +1,15 @@
-from distutils.core import setup
+from setuptools import setup
+import sys
+
+
+setup_requires = ['setuptools >= 41.0.1']
+if {'pytest', 'test', 'ptr'}.intersection(sys.argv):
+    setup_requires.append('pytest-runner')
 
 setup(
-        name='ddosa-client',
-        version='1.0',
-        py_modules= ['ddosaclient','simple_logger','discover_docker'],
+        name='ddaclient',
+        version='1.1.10',
+        py_modules= ['ddaclient','simple_logger'],
         package_data     = {
             "": [
                 "*.txt",
@@ -14,9 +20,13 @@ setup(
             },
         entry_points={
                 'console_scripts':[
-                    'dda-client = ddosaclient:main'
+                    'dda-client = ddaclient:main'
                 ]
         },
         license='Creative Commons Attribution-Noncommercial-Share Alike license',
-        long_description=open('README.md').read(),
+        description="client for data-analysis services",
+        long_description="",
+        #long_description=open('README.md', 'rt').read(),
         )
+
+

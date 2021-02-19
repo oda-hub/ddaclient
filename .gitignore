@@ -1,0 +1,14 @@
+__pycache__
+.idea
+.cache
+dda-.*
+build
+ddaclient.egg-info
+dist
+data.json
+tmp_*json
+tmp_*txt
+data*.json
+*.swp
+exception.yaml
+*.gpg

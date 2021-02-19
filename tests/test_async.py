@@ -5,33 +5,31 @@ import time
 import random
 import urllib.request, urllib.parse, urllib.error
 
-import ddosaclient
+import ddaclient
 
 test_scw=os.environ.get('TEST_SCW',"010200210010.001")
 test_scw_list_str=os.environ.get('TEST_SCW_LIST','["005100410010.001","005100420010.001","005100430010.001"]')
                                     
 default_callback="http://mock-dispatcher.dev:6001/callback"
 
-def test_AutoRemoteDDOSA_construct():
-    remote=ddosaclient.AutoRemoteDDOSA()
+def test_AutoRemoteDDA_construct():
+    remote=ddaclient.AutoRemoteDDA()
 
-def test_AutoRemoteDDOSA_docker():
-    remote=ddosaclient.AutoRemoteDDOSA(config_version="docker_any")
+def test_AutoRemoteDDA_docker():
+    remote=ddaclient.AutoRemoteDDA(config_version="docker_any")
 
 def test_poke():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
     remote.poke()
 
-def test_sleep():
-    remote=ddosaclient.AutoRemoteDDOSA()
-    remote.query("sleep:5")
-
+@pytest.mark.skip(reason="obsolete")
 def test_history():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
     remote.query("history")
 
+@pytest.mark.skip(reason="obsolete")
 def test_poke_sleeping():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
     
     import threading
     
@@ -47,11 +45,15 @@ def test_poke_sleeping():
             r=remote.poke()
             print(r)
             break
+<<<<<<< HEAD
         except ddosaclient.WorkerException as e:
+=======
+        except ddaclient.WorkerException as e:
+>>>>>>> staging-1-3
             print(e)
 
 def test_broken_connection():
-    remote=ddosaclient.RemoteDDOSA("http://127.0.1.1:1","")
+    remote=ddaclient.RemoteDDA("http://127.0.3.1:1","")
 
     with pytest.raises(requests.ConnectionError):
         product=remote.query(target="ii_spectra_extract",
@@ -60,94 +62,47 @@ def test_broken_connection():
                                      'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                      'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
+def test_analysis_exception():
+    remote=ddaclient.AutoRemoteDDA()
+
+    while True:
+        try:
+            product=remote.query(target="ibis_gti",
+                    modules=["git://ddosa/staging-1-3"],
+                             assume=['ddosa.ScWData(input_scwid="335200230010.001")',
+                                     'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
+                                     'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
+            break
+        except ddaclient.AnalysisException as e:
+            print("found as expected exception", e)
+            return
+        except ddaclient.AnalysisDelegatedException as e:
+            print("waiting ", e)
+            time.sleep(2)
+
+    raise RuntimeError("should have raised exception!")
+
+
+
 def test_bad_request():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     #with pytest.raises(requests.ConnectionError):
 
-    with pytest.raises(ddosaclient.WorkerException):
+    with pytest.raises(ddaclient.WorkerException):
         product=remote.query(target="Undefined",
-                             modules=["ddosa","git://ddosadm"],
-                             assume=['ddosa.ScWData(input_scwid="035200230010.001")',
-                                     'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
-                                     'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
-
-
-
-def test_image():
-    remote=ddosaclient.AutoRemoteDDOSA()
-
-    product=remote.query(target="ii_skyimage",
-                         modules=["ddosa","git://ddosadm"],
+                modules=["git://ddosa/staging-1-3"],
                          assume=['ddosa.ScWData(input_scwid="035200230010.001")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
-
-def test_poke_image():
-    remote=ddosaclient.AutoRemoteDDOSA()
-    
-    import threading
-    
-    def worker():
-        product=remote.query(target="ii_skyimage",
-                             modules=["ddosa","git://ddosadm"],
-                             assume=['ddosa.ScWData(input_scwid="035200230010.001")',
-                                     'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
-                                     'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
-        assert os.path.exists(product.skyres)
-        assert os.path.exists(product.skyima)
-
-    t = threading.Thread(target=worker)
-    t.start()
-
-    for i in range(15):
-        time.sleep(1)
-        try:
-            r=remote.poke()
-            print(r)
-            break
-        except ddosaclient.WorkerException as e:
-            print(e)
-
-def test_spectrum():
-    remote=ddosaclient.AutoRemoteDDOSA()
-
-    product=remote.query(target="ii_spectra_extract",
-                         modules=["ddosa","git://ddosadm"],
-                         assume=['ddosa.ScWData(input_scwid="035200230010.001")',
-                                 'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
-                                 'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
-
-    assert os.path.exists(product.spectrum)
-
-def test_mosaic():
-    remote=ddosaclient.AutoRemoteDDOSA()
-
-    product=remote.query(target="Mosaic",
-              modules=["ddosa","git://ddosadm","git://osahk","git://mosaic",'git://rangequery'],
-              assume=['mosaic.ScWImageList(\
-                  input_scwlist=\
-                  rangequery.TimeDirectionScWList(\
-                      use_coordinates=dict(RA=83,DEC=22,radius=5),\
-                      use_timespan=dict(T1="2008-04-12T11:11:11",T2="2009-04-12T11:11:11"),\
-                      use_max_pointings=50 \
-                      )\
-                  )\
-              ',
-              'mosaic.Mosaic(use_pixdivide=4)',
-              'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
-              'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
-
-
-    assert os.path.exists(product.skyima)
 
 def test_delegation():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     random_rev=random.randint(50,1800)
 
-    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product=remote.query(target="ii_skyimage",
                              modules=["ddosa","git://ddosadm"],
                              assume=['ddosa.ScWData(input_scwid="%.4i00430010.001")'%random_rev,
@@ -160,11 +115,11 @@ def test_delegation():
     assert excinfo.value.delegation_state == "submitted"
 
 def test_lc_delegation():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     random_ra=83+(random.random()-0.5)*5
 
-    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(target="lc_pick",
                                modules=["git://ddosa", "git://ddosadm", 'git://rangequery'],
                                assume=['ddosa.ImageGroups(\
@@ -185,11 +140,11 @@ def test_lc_delegation():
                          )
 
 def test_mosaic_delegation():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     random_ra=83+(random.random()-0.5)*5
 
-    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(target="mosaic_ii_skyimage",
                                modules=["git://ddosa", 'git://rangequery'],
                                assume=['ddosa.ImageGroups(\
@@ -208,9 +163,9 @@ def test_mosaic_delegation():
                          )
 
 def test_spectra_delegation():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
-    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(target="ISGRISpectraSum",
                                modules=["git://ddosa", "git://ddosadm", 'git://rangequery'],
                                assume=['process_isgri_spectra.ScWSpectraList(\
@@ -231,7 +186,7 @@ def test_spectra_delegation():
     assert excinfo.value.delegation_state == "submitted"
 
 def test_mosaic_delegation_cat():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     random_ra=83+(random.random()-0.5)*5
     cat = ['SourceCatalog',
@@ -258,7 +213,7 @@ def test_mosaic_delegation_cat():
 
     print(("encoded:",encoded))
 
-    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(target="mosaic_ii_skyimage",
                                modules=["git://ddosa", "git://ddosadm", 'git://rangequery','git://gencat'],
                                assume=['ddosa.ImageGroups(\
@@ -281,7 +236,7 @@ def test_mosaic_delegation_cat():
     assert excinfo.value.delegation_state == "submitted"
 
 def test_spectra_delegation_cat_distribute():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     random_ra=83+(random.random()-0.5)*5
     cat = ['SourceCatalog',
@@ -308,7 +263,7 @@ def test_spectra_delegation_cat_distribute():
 
     print(("encoded:",encoded))
 
-    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(target="ISGRISpectraSum",
                                modules=["git://ddosa", 'git://rangequery',"git://useresponse/cd7855bf7","git://process_isgri_spectra/2200bfd",'git://gencat','git://ddosa_delegate'],
                                assume=['process_isgri_spectra.ScWSpectraList(input_scwlist=rangequery.TimeDirectionScWList)',
@@ -328,7 +283,7 @@ def test_spectra_delegation_cat_distribute():
     assert excinfo.value.delegation_state == "submitted"
 
 def test_mosaic_delegation_cat_distribute():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
     random_ra=83+(random.random()-0.5)*5
     cat = ['SourceCatalog',
@@ -355,7 +310,7 @@ def test_mosaic_delegation_cat_distribute():
 
     print(("encoded:",encoded))
 
-    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product = remote.query(target="mosaic_ii_skyimage",
                                modules=["git://ddosa", 'git://rangequery','git://gencat/dev','git://ddosa_delegate'],
                                assume=['ddosa.ImageGroups(input_scwlist=rangequery.TimeDirectionScWList)',
@@ -375,11 +330,11 @@ def test_mosaic_delegation_cat_distribute():
     assert excinfo.value.delegation_state == "submitted"
 
 def test_jemx():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
  #   random_ra=83+(random.random()-0.5)*5
 
-    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product=remote.query(target="mosaic_jemx",
                 modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
                 assume=['ddjemx.JMXScWImageList(\
@@ -398,11 +353,11 @@ def test_jemx():
 
 
 def test_jemx_osa_mosaic():
-    remote=ddosaclient.AutoRemoteDDOSA()
+    remote=ddaclient.AutoRemoteDDA()
 
  #   random_ra=83+(random.random()-0.5)*5
 
-    with pytest.raises(ddosaclient.AnalysisDelegatedException) as excinfo:
+    with pytest.raises(ddaclient.AnalysisDelegatedException) as excinfo:
         product=remote.query(target="mosaic_jemx",
                 modules=["git://ddosa","git://ddosadm","git://ddjemx",'git://rangequery'],
                 assume=['ddjemx.JMXImageGroups(\
