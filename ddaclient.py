@@ -184,8 +184,16 @@ class DDAproduct(object):
         if len(selected_cached_paths) > 1:
             raise UnknownDDABackendProblem(f"multiple entries in cached path for the object {selected_cached_paths}")
         elif len(selected_cached_paths) == 1:
-            local_cached_path = selected_cached_paths[0].replace("data/reduced/ddcache", self.ddcache_root_local)
-            logger.info("cached object in %s => %s", selected_cached_paths[0], local_cached_path)
+            local_cached_path = os.path.join(
+                                        self.ddcache_root_local, 
+                                        selected_cached_paths[0].replace("data/reduced/ddcache", "").strip("/")
+                                    )
+            logger.info("\033[32mself.ddcache_root_local: %s\033[0m", self.ddcache_root_local)
+            logger.info("\033[32mprepared selected_cached_paths[0]: %s\033[0m", selected_cached_paths[0].replace("data/reduced/ddcache", "").strip("/"))
+            logger.info("\033[32mcached object in %s => %s\033[0m", selected_cached_paths[0], local_cached_path)
+
+            if not os.path.exists(local_cached_path):
+                raise RuntimeError(f"restored object can not be found in local space \"{local_cached_path}\": check local cache location: \"{self.ddcache_root_local}\"")
         else:
             local_cached_path = None
             logger.warning("no cached path in this object")
@@ -213,7 +221,7 @@ class DDAproduct(object):
 
 
 class RemoteDDA:
-    default_modules = ["git://ddosa"]
+    default_modules = [ "git://ddosa" ]
     default_assume = []  # type: list
     #"ddadm.DataSourceConfig(use_store_files=False)"] if not ('SCWDATA_SOURCE_MODULE' in os.environ and os.environ['SCWDATA_SOURCE_MODULE']=='ddadm') else []
 
@@ -270,8 +278,9 @@ class RemoteDDA:
     def poke(self):
         return self.query("poke")
 
-    def query(self,target,modules=[],assume=[],inject=[],prompt_delegate=True,callback=None):
+    def query(self, target, modules=[], assume=[], inject=[], prompt_delegate=True, callback=None, sync=False):
         n_retries = getattr(self, 'n_retries', 10)
+
         for i in reversed(range(n_retries)):
             try:
                 return self._query(target, modules, assume, inject, prompt_delegate, callback)
@@ -279,8 +288,9 @@ class RemoteDDA:
                 logger.info("passing through analysis exception: %s", e)
                 raise
             except AnalysisDelegatedException as e:
-                logger.info("passing through delegated exception: %s", e)
-                raise
+                if not sync:
+                    logger.info("passing through delegated exception: %s", e)
+                    raise
             except Exception as e:
                 logger.exception("\033[31msomething failed in query: %s\033[0m, %s / %s attempts left", e, i, n_retries)
                 if i == 0:
@@ -288,7 +298,7 @@ class RemoteDDA:
                 else:
                     time.sleep(5)
 
-        raise RuntimeError("we should not be here")
+        raise RuntimeError(f"request to DDA did not complete in {n_retries} tries!")
                 
 
 
