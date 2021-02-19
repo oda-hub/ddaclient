@@ -45,11 +45,7 @@ def test_poke_sleeping():
             r=remote.poke()
             print(r)
             break
-<<<<<<< HEAD
-        except ddosaclient.WorkerException as e:
-=======
         except ddaclient.WorkerException as e:
->>>>>>> staging-1-3
             print(e)
 
 def test_broken_connection():
