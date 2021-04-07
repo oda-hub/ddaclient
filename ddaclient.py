@@ -105,7 +105,10 @@ class Secret(object):
         else:
             return 
 
-    def get_auth(self):
+    def discover_auth(self):
+        if hasattr(self, '_username') and hasattr(self, '_password'):
+            return
+        
         username = None
         password = None
 
@@ -128,7 +131,12 @@ class Secret(object):
             logger.error(f"no credentials, tried: {tried}; will asssume plain")
             password = ""
 
-        return requests.auth.HTTPBasicAuth(username, password)
+        self._username = username
+        self._password = password
+
+    def get_auth(self):
+        self.discover_auth()
+        return requests.auth.HTTPBasicAuth(self._username, self._password)
 
 
 class DDAproduct(object):
@@ -316,7 +324,7 @@ class RemoteDDA:
                 logger.info("request will be sent to OSA10")
 
             logger.info("request to pipeline: %s",p)
-            logger.info("request to pipeline: %s", url+"/"+urllib.parse.urlencode(p['params']))
+            logger.info("request to pipeline: %s", url+"?"+urllib.parse.urlencode(p['params']))
             response = requests.get(url,p['params'],auth=self.secret.get_auth())
             logger.debug(response.text)
         except Exception as e:
