@@ -120,7 +120,7 @@ def test_mosaic_parallel():
         print(("encoded:",encoded))
         custom_version = "imgbins_for_"+job_id
         kwargs_sets[custom_version]=dict(target="mosaic_ii_skyimage",
-                           modules=["git://ddosa", 'git://rangequery','git://gencat/dev','git://ddosa_delegate'],
+                           modules=["git://ddosa/staging-1-3", "git://ddosa11/staging-1-3", 'git://rangequery/staging-1-3','git://gencat','git://ddosa_delegate/staging-1-3'],
                            assume=['ddosa.ImageGroups(input_scwlist=rangequery.TimeDirectionScWList)',
                                    'rangequery.TimeDirectionScWList(\
                                          use_coordinates=dict(RA=83,DEC=22,radius=5),\
