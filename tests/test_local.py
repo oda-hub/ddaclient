@@ -13,10 +13,9 @@ scwsource_module=os.environ.get('SCWDATA_SOURCE_MODULE','ddosa')
 ddosa_modules=os.environ.get('DDA_MODULE',"git://ddosa").split(",")
 
 def test_AutoRemoteDDA_construct():
-    remote=ddaclient.AutoRemoteDDA()
+    remote = ddaclient.AutoRemoteDDA()
+    print("found", remote)
 
-#def test_AutoRemoteDDA_docker():
-#    remote=ddaclient.AutoRemoteDDA(config_version="docker_any")
 
 test_scw=os.environ.get('TEST_SCW',"035200230010.001")
 
