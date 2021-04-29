@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 def log(*a,**aa):
     logger.info(repr((a,aa)))
 
+class NotAuthorizedOnDDA(Exception):
+    pass
 
 class UnknownDDABackendProblem(Exception):
     pass
@@ -331,10 +333,16 @@ class RemoteDDA:
             logger.error("exception in request %s", e)
             raise
 
-        if target == "poke":
-            logger.info("poke did not raise an exception, which is success!")
-            return
+        if response.status_code != 200:
+            if response.status_code == 403:
+                raise NotAuthorizedOnDDA(f"used user {self.secret._username}, raw response {response.text}")
+            else:
+                raise UnknownDDABackendProblem(f"got unexpected response status {response.status_code}, raw response {response.text}")
 
+        if target == "poke":
+            logger.info("poke did not raise an exception, which is success! poke details: %s", response.text)
+            return
+        
         try:
             response_json=response.json()
             return DDAproduct(response_json, self.ddcache_root_local)
