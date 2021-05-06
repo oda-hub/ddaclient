@@ -51,19 +51,24 @@ def test_mosaic_delegation_cat_distribute(randomize_ra):
     custom_version = "imgbins_for_"+job_id
         
     kwargs = dict(target="mosaic_ii_skyimage",
-                           modules=["git://ddosa/staging-1-3", 'git://rangequery/staging-1-3','git://gencat/staging-1-3', 'git://ddosa_delegate/staging-1-3'],
-                           assume=['ddosa.ImageGroups(input_scwlist=rangequery.TimeDirectionScWList)',
-                                   'rangequery.TimeDirectionScWList(\
-                                         use_coordinates=dict(RA=83,DEC=22,radius=5),\
-                                         use_timespan=dict(T1="2018-04-12T11:11:11",T2="2019-04-12T11:11:11"),\
-                                         use_max_pointings=%i \
-                                    )'%int(os.environ.get("TEST_N_POINTINGS",2)),
-                                   'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=False, use_version="%s")'%custom_version,
-                                   'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
-                           callback=default_callback+"?"+encoded,
-                           prompt_delegate=True,
-                           inject=[cat],
-                         )
+                  modules=["git://ddosa/staging-1-3", 
+                           "git://findic/staging-1-3-icversion", 
+                           "git://ddosa11/staging-1-3", 
+                           'git://rangequery/staging-1-3',
+                           'git://gencat/staging-1-3', 
+                           'git://ddosa_delegate/staging-1-3'],
+                  assume=['ddosa.ImageGroups(input_scwlist=rangequery.TimeDirectionScWList)',
+                          'rangequery.TimeDirectionScWList(\
+                                use_coordinates=dict(RA=83,DEC=22,radius=5),\
+                                use_timespan=dict(T1="2018-04-12T11:11:11",T2="2019-04-12T11:11:11"),\
+                                use_max_pointings=%i \
+                           )'%int(os.environ.get("TEST_N_POINTINGS",2)),
+                          'ddosa.ImageBins(use_ebins=[(20,80)],use_autoversion=False, use_version="%s")'%custom_version,
+                          'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'],
+                  callback=default_callback+"?"+encoded,
+                  prompt_delegate=True,
+                  inject=[cat],
+                 )
 
     while True:
         try:

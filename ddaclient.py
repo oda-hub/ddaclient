@@ -155,14 +155,25 @@ class Secret(object):
 
 
 class DDAproduct(object):
-    def __init__(self, dda_worker_response, ddcache_root_local):
+
+    download_ddcache_files_if_necessary = True
+
+    def __init__(self, dda_worker_response, ddcache_root_local, remote_dda):
+        self.logger = logging.getLogger(self.__class__.__name__)
+
         self.ddcache_root_local = ddcache_root_local
+        self.remote_dda = remote_dda
         self.interpret_dda_worker_response(dda_worker_response)
+        
+
+    def download_ddcache_file(self, cached_path, filename, local_fn):
+        self.logger.info("\033[31mdownloading extra file [%s : %s ] \033[0m", cached_path, filename)
+        self.remote_dda.download_ddcache_file(cached_path, filename, local_fn)
 
     def interpret_dda_worker_response(self, r):
         self.raw_response = r
 
-        logger = logging.getLogger(self.__class__.__name__)
+        logger = self.logger
 
         logger.debug("%s to parse \033[34m%s\033[0m", self, r["result"])
 
@@ -212,21 +223,27 @@ class DDAproduct(object):
             raise UnknownDDABackendProblem(
                 f"multiple entries in cached path for the object {selected_cached_paths}")
         elif len(selected_cached_paths) == 1:
+            selected_cached_path = selected_cached_paths[0]
+
             local_cached_path = os.path.join(
                 self.ddcache_root_local,
-                selected_cached_paths[0].replace(
+                selected_cached_path.replace(
                     "data/reduced/ddcache", "").strip("/")
             )
+
             logger.info(
                 "\033[32mself.ddcache_root_local: %s\033[0m", self.ddcache_root_local)
-            logger.info("\033[32mprepared selected_cached_paths[0]: %s\033[0m",
-                        selected_cached_paths[0].replace("data/reduced/ddcache", "").strip("/"))
+            logger.info("\033[32mprepared selected_cached_path: %s\033[0m",
+                        selected_cached_path.replace("data/reduced/ddcache", "").strip("/"))
             logger.info("\033[32mcached object in %s => %s\033[0m",
-                        selected_cached_paths[0], local_cached_path)
+                        selected_cached_path, local_cached_path)
 
             if not os.path.exists(local_cached_path):
-                raise RuntimeError(
-                    f"restored object can not be found in local space \"{local_cached_path}\": check local cache location: \"{self.ddcache_root_local}\"")
+                if self.download_ddcache_files_if_necessary:
+                    os.makedirs(local_cached_path)
+                else:
+                    raise RuntimeError(
+                        f"restored object can not be found in local space \"{local_cached_path}\": check local cache location: \"{self.ddcache_root_local}\"")
         else:
             local_cached_path = None
             logger.warning("no cached path in this object")
@@ -246,6 +263,18 @@ class DDAproduct(object):
                     local_fn = os.path.join(
                         local_cached_path, v[1]).replace("//", "/")+".gz"
                     log("data file attached:", k, local_fn)
+
+                    if not os.path.exists(local_fn):
+                        if self.download_ddcache_files_if_necessary:
+                            self.download_ddcache_file(cached_path=selected_cached_paths[0],
+                                                       filename=v[1],
+                                                       local_fn=local_fn,
+                                                )
+                        else:
+                            raise RuntimeError(
+                                f"restored object file {local_fn} can not be found in local space \"{local_cached_path}\": check local cache location: \"{self.ddcache_root_local}\"")
+
+
                     setattr(self, k, local_fn)
         else:
             logger.warning(
@@ -262,6 +291,7 @@ class RemoteDDA:
     # "ddadm.DataSourceConfig(use_store_files=False)"] if not ('SCWDATA_SOURCE_MODULE' in os.environ and os.environ['SCWDATA_SOURCE_MODULE']=='ddadm') else []
 
     def __init__(self, service_url, ddcache_root_local):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.service_url = service_url
         self.ddcache_root_local = ddcache_root_local
 
@@ -311,6 +341,31 @@ class RemoteDDA:
 
         return args
 
+    def download_ddcache_file(self, cached_path, filename, local_fn):
+        self.logger.info("\033[31mdownloading extra file [ %s : %s ] to [ %s ] \033[0m", cached_path, filename, local_fn)
+        
+        r = requests.get(
+                     f"{self.service_url}/api/2.0/fetch-file",
+                     params=dict(
+                         cached_path=cached_path,
+                         filename=filename
+                     ),
+                     auth=self.secret.get_auth()
+                    )
+
+        if r.status_code != 200:
+            raise RuntimeError(f"unable to download file: {r} {r.text}")
+
+        if os.path.exists(local_fn):
+            raise RuntimeError(f"will not download {local_fn} since it already exists")
+
+        os.makedirs(os.path.dirname(local_fn), exist_ok=True)
+
+        open(local_fn, "wb").write(r.content)
+
+        #TODO: storefile
+
+
     def poke(self):
         return self.query("poke")
 
@@ -348,7 +403,7 @@ class RemoteDDA:
                 target, modules, assume, inject, prompt_delegate, callback)
             url = p['url']
 
-            if any(["osa11" in module for module in modules]):  # nogood patch, only for 1.2
+            if any(["osa11" in module for module in modules]): 
                 logger.info("request will be sent to OSA11")
                 url = url.replace("interface-worker", "interface-worker-osa11")
             else:
@@ -381,7 +436,7 @@ class RemoteDDA:
 
         try:
             response_json = response.json()
-            return DDAproduct(response_json, self.ddcache_root_local)
+            return DDAproduct(response_json, self.ddcache_root_local, self)
         except WorkerException as e:
             logger.error("problem interpretting request: %s", e)
             logger.error("raw content: %s", response.text)

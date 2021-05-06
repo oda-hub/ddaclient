@@ -53,6 +53,7 @@ def test_poke_sleeping():
         except ddaclient.WorkerException as e:
             print(e)
 
+
 @pytest.mark.verylong
 def test_broken_connection():
     remote = ddaclient.RemoteDDA("http://127.0.3.1:1", "")
@@ -60,11 +61,38 @@ def test_broken_connection():
     with pytest.raises(requests.ConnectionError):
         product = remote.query(target="ii_spectra_extract",
                                modules=["ddosa", "git://ddosadm"],
-                               assume=['ddosa.ScWData(input_scwid="035200230010.001")',
+                               assume=['ddosa.ScWData(input_scwid="185200230010.001")',
                                        'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                        'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
 
     assert product
+
+
+ddosa11_modules = [
+    "git://ddosa",
+    "git://ddosa/staging-1-3",
+    "git://findic/staging-1-3-icversion",
+    "git://ddosa11/staging-1-3",
+    "git://ddosa_delegate/staging-1-3",
+]
+
+
+def test_small_request():
+    remote = ddaclient.AutoRemoteDDA()
+
+    while True:
+        try:
+            product = remote.query(target="ii_skyimage",
+                                modules=ddosa11_modules,
+                                assume=['ddosa.ScWData(input_scwid="185200230010.001")',
+                                        'ddosa.ImageBins(use_ebins=[(25,80)])',
+                                        ])
+            print(product)
+            break
+        except ddaclient.AnalysisDelegatedException as e:
+            if e.delegation_state == "done":
+                break
+            time.sleep(1)
 
 
 
@@ -81,6 +109,7 @@ def test_very_large_request():
 
     assert product
 
+
 @pytest.mark.long
 def test_analysis_exception():
     remote = ddaclient.AutoRemoteDDA()
@@ -90,7 +119,8 @@ def test_analysis_exception():
     while True:
         try:
             product = remote.query(target="ibis_gti",
-                                   modules=["git://ddosa/staging-1-3", 'git://findic/staging-1-3', "git://ddosa11/staging-1-3"],
+                                   modules=[
+                                       "git://ddosa/staging-1-3", 'git://findic/staging-1-3', "git://ddosa11/staging-1-3"],
                                    assume=['ddosa.ScWData(input_scwid="335200230010.001")',
                                            'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                            'ddosa.ImagingConfig(use_SouFit=0,use_version="soufit0")'])
