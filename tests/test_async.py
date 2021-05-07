@@ -78,6 +78,8 @@ ddosa11_modules = [
 
 
 def test_small_request():
+    from astropy.io import fits
+
     remote = ddaclient.AutoRemoteDDA()
 
     while True:
@@ -93,6 +95,8 @@ def test_small_request():
             if e.delegation_state == "done":
                 break
             time.sleep(1)
+
+    print(fits.open(product.skyima))
 
 
 

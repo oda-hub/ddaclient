@@ -168,7 +168,7 @@ class DDAproduct(object):
 
     def download_ddcache_file(self, cached_path, filename, local_fn):
         self.logger.info("\033[31mdownloading extra file [%s : %s ] \033[0m", cached_path, filename)
-        self.remote_dda.download_ddcache_file(cached_path, filename, local_fn)
+        return self.remote_dda.download_ddcache_file(cached_path, filename, local_fn)
 
     def interpret_dda_worker_response(self, r):
         self.raw_response = r
@@ -266,10 +266,11 @@ class DDAproduct(object):
 
                     if not os.path.exists(local_fn):
                         if self.download_ddcache_files_if_necessary:
-                            self.download_ddcache_file(cached_path=selected_cached_paths[0],
+                            local_fn = self.download_ddcache_file(cached_path=selected_cached_paths[0],
                                                        filename=v[1],
                                                        local_fn=local_fn,
                                                 )
+                            logger.info("restored in new location %s", local_fn)
                         else:
                             raise RuntimeError(
                                 f"restored object file {local_fn} can not be found in local space \"{local_cached_path}\": check local cache location: \"{self.ddcache_root_local}\"")
@@ -342,7 +343,9 @@ class RemoteDDA:
         return args
 
     def download_ddcache_file(self, cached_path, filename, local_fn):
-        self.logger.info("\033[31mdownloading extra file [ %s : %s ] to [ %s ] \033[0m", cached_path, filename, local_fn)
+        local_fn_modified = local_fn + ".recovered"
+
+        self.logger.info("\033[31mdownloading extra file [ %s : %s ] to [ %s ] \033[0m", cached_path, filename, local_fn_modified)
         
         r = requests.get(
                      f"{self.service_url}/api/2.0/fetch-file",
@@ -356,14 +359,17 @@ class RemoteDDA:
         if r.status_code != 200:
             raise RuntimeError(f"unable to download file: {r} {r.text}")
 
-        if os.path.exists(local_fn):
-            raise RuntimeError(f"will not download {local_fn} since it already exists")
+        if os.path.exists(local_fn_modified):
+            logger.warning("will download %s even though it already exists", local_fn_modified)
+            #raise RuntimeError(f"will not download {local_fn_modified} since it already exists")
 
-        os.makedirs(os.path.dirname(local_fn), exist_ok=True)
+        os.makedirs(os.path.dirname(local_fn_modified), exist_ok=True)
 
-        open(local_fn, "wb").write(r.content)
+        open(local_fn_modified, "wb").write(r.content)
 
         #TODO: storefile
+
+        return local_fn_modified
 
 
     def poke(self):
