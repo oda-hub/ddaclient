@@ -12,3 +12,4 @@ data*.json
 *.swp
 exception.yaml
 *.gpg
+local-ddcache
