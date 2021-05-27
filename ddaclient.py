@@ -385,9 +385,9 @@ class RemoteDDA:
                 return self._query(target, modules, assume, inject, prompt_delegate, callback)
             except NotAuthorizedOnDDA as e:
                 raise
-            except AnalysisException as e:
+            except (AnalysisException, PermanentAnalysisException) as e:
                 logger.info("passing through analysis exception: %s", e)
-                raise
+                raise            
             except AnalysisDelegatedException as e:
                 if not sync:
                     logger.info("passing through delegated exception: %s", e)
