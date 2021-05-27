@@ -415,8 +415,8 @@ class RemoteDDA:
             if any(["integral_all_private" in module for module in modules]): 
                 logger.info("sending request to private backend")
             else: 
-                raise PermanentAnalysisException('not able to request public-only data currently')
-            
+                if target != "poke":
+                    raise PermanentAnalysisException('not able to request public-only data currently')
 
             if any(["osa11" in module for module in modules]): 
                 logger.info("request will be sent to OSA11")
