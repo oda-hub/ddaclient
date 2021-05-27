@@ -42,6 +42,8 @@ class AnalysisDelegatedException(Exception):
     def __repr__(self):
         return "[%s: %s]" % (self.__class__.__name__, self.delegation_state)
 
+class PermanentAnalysisException(Exception):
+    pass
 
 class AnalysisException(Exception):
     @classmethod
@@ -413,7 +415,7 @@ class RemoteDDA:
             if any(["integral_all_private" in module for module in modules]): 
                 logger.info("sending request to private backend")
             else: 
-                raise AnalysisException('not able to request public-only data currently')
+                raise PermanentAnalysisException('not able to request public-only data currently')
             
 
             if any(["osa11" in module for module in modules]): 
