@@ -413,7 +413,7 @@ class RemoteDDA:
             if any(["integral_all_private" in module for module in modules]): 
                 logger.info("sending request to private backend")
             else: 
-                raise RuntimeError('not able to request public-only data currently')
+                raise AnalysisException('not able to request public-only data currently')
             
 
             if any(["osa11" in module for module in modules]): 
