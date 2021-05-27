@@ -339,7 +339,7 @@ class RemoteDDA:
 
         if 'OPENID_TOKEN' in os.environ:
             args['params']['token'] = os.environ['OPENID_TOKEN']
-
+        
         return args
 
     def download_ddcache_file(self, cached_path, filename, local_fn):
@@ -407,10 +407,13 @@ class RemoteDDA:
         try:
             p = self.prepare_request(
                 target, modules, assume, inject, prompt_delegate, callback)
+
             url = p['url']
 
             if any(["integral_all_private" in module for module in modules]): 
-                raise RuntimeError('not allowed to request private data on this backend')
+                logger.info("sending request to private backend")
+            else: 
+                raise RuntimeError('not able to request public-only data currently')
             
 
             if any(["osa11" in module for module in modules]): 
