@@ -328,9 +328,6 @@ class RemoteDDA:
         else:
             api_version = "v1.0"
 
-        if any():
-            raise Rem
-
         args = dict(url=self.service_url+"/api/"+api_version+"/"+target,
                     params=dict(modules=",".join(self.default_modules+modules),
                                 assume=",".join(self.default_assume+assume),
