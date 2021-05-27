@@ -328,6 +328,9 @@ class RemoteDDA:
         else:
             api_version = "v1.0"
 
+        if any():
+            raise Rem
+
         args = dict(url=self.service_url+"/api/"+api_version+"/"+target,
                     params=dict(modules=",".join(self.default_modules+modules),
                                 assume=",".join(self.default_assume+assume),
@@ -408,6 +411,10 @@ class RemoteDDA:
             p = self.prepare_request(
                 target, modules, assume, inject, prompt_delegate, callback)
             url = p['url']
+
+            if any(["integral_all_private" in module for module in modules]): 
+                raise RuntimeError('not allowed to request private data on this backend')
+            
 
             if any(["osa11" in module for module in modules]): 
                 logger.info("request will be sent to OSA11")
