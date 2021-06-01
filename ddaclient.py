@@ -330,7 +330,17 @@ class RemoteDDA:
         else:
             api_version = "v1.0"
 
-        args = dict(url=self.service_url+"/api/"+api_version+"/"+target,
+        
+        if any(["integral_all_private" in module for module in modules]): 
+            logger.info("sending request to private backend, the default")
+            service_url = self.service_url
+        else: 
+            if target != "poke":
+                service_url = os.environ.get('DDA_INTERFACE_URL_PUBLIC_DATA', None)
+                if service_url is None:
+                    raise PermanentAnalysisException('not able to request public-only data currently')
+
+        args = dict(url=service_url+"/api/"+api_version+"/"+target,
                     params=dict(modules=",".join(self.default_modules+modules),
                                 assume=",".join(self.default_assume+assume),
                                 inject=json.dumps(inject),
@@ -412,19 +422,13 @@ class RemoteDDA:
 
             url = p['url']
 
-            if any(["integral_all_private" in module for module in modules]): 
-                logger.info("sending request to private backend")
-            else: 
-                if target != "poke":
-                    raise PermanentAnalysisException('not able to request public-only data currently')
-
             if any(["osa11" in module for module in modules]): 
                 logger.info("request will be sent to OSA11")
                 url = url.replace("interface-worker", "interface-worker-osa11")
             else:
                 logger.info("request will be sent to OSA10")
 
-            logger.info("request to pipeline: %s", p)
+            logger.info("request to pipeline with parameters: %s", p)
             logger.info("request to pipeline: %s", url+"?" +
                         urllib.parse.urlencode(p['params']))
 
@@ -558,6 +562,7 @@ def main():
 
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
 
     if args.target == "poke":
 
