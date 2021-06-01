@@ -355,7 +355,8 @@ class RemoteDDA:
         return args
 
     def download_ddcache_file(self, cached_path, filename, local_fn):
-        local_fn_modified = local_fn + ".recovered"
+        local_fn_modified = local_fn
+        #local_fn_modified = local_fn + ".recovered"
 
         self.logger.info("\033[31mdownloading extra file [ %s : %s ] to [ %s ] \033[0m", cached_path, filename, local_fn_modified)
         
@@ -377,7 +378,8 @@ class RemoteDDA:
 
         os.makedirs(os.path.dirname(local_fn_modified), exist_ok=True)
 
-        open(local_fn_modified, "wb").write(r.content)
+        with open(local_fn_modified, "wb") as f:
+            f.write(r.content)
 
         #TODO: storefile
 
