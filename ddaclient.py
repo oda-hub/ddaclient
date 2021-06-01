@@ -330,10 +330,10 @@ class RemoteDDA:
         else:
             api_version = "v1.0"
 
+        service_url = self.service_url
         
         if any(["integral_all_private" in module for module in modules]): 
             logger.info("sending request to private backend, the default")
-            service_url = self.service_url
         else: 
             if target != "poke":
                 service_url = os.environ.get('DDA_INTERFACE_URL_PUBLIC_DATA', 'http://oda-dda-interface:8000') # get otherwise
