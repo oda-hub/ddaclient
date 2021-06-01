@@ -336,7 +336,7 @@ class RemoteDDA:
             service_url = self.service_url
         else: 
             if target != "poke":
-                service_url = os.environ.get('DDA_INTERFACE_URL_PUBLIC_DATA', None)
+                service_url = os.environ.get('DDA_INTERFACE_URL_PUBLIC_DATA', 'http://oda-dda-interface:8000') # get otherwise
                 if service_url is None:
                     raise PermanentAnalysisException('not able to request public-only data currently')
 
