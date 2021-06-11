@@ -295,8 +295,8 @@ class RemoteDDA:
 
     def __init__(self, service_url, ddcache_root_local):
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.service_url = service_url
-        self.ddcache_root_local = ddcache_root_local
+        self.parse_service_url(service_url)
+        self.ddcache_root_local = ddcache_root_local                
 
         if ddcache_root_local is None:
             raise Exception(
@@ -304,9 +304,38 @@ class RemoteDDA:
 
         self.secret = Secret()
 
+    def parse_service_url(self, service_url):
+        services = {}
+        
+        self._default_service_url = None
+
+        for s in service_url.split(","):
+            service_reference = s.split("=")
+            if len(service_reference) == 1:
+                k = len(services)
+                v = service_reference[0]
+                
+            elif len(service_reference) == 2:
+                k = service_reference[0]
+                v = service_reference[1]
+            else:
+                raise RuntimeError(f"malformed service url entry {s} split into {service_reference} extracted from {service_url}")
+
+            services[k] = v
+
+            if self._default_service_url is None:
+                self._default_service_url = v
+            
+        self._service_collection = services
+        
+        
+    @property
+    def service_collection(self):
+        return self._service_collection
+
     @property
     def service_url(self):
-        return self._service_url
+        return self._default_service_url
 
     @service_url.setter
     def service_url(self, service_url):
