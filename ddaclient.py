@@ -362,12 +362,15 @@ class RemoteDDA:
         service_url = self.service_url
         
         if any(["integral_all_private" in module for module in modules]): 
-            logger.info("sending request to private backend, the default")
+            service_class = 'private'
         else: 
-            if target != "poke":
-                service_url = os.environ.get('DDA_INTERFACE_URL_PUBLIC_DATA', 'http://oda-dda-interface:8000') # get otherwise
-                if service_url is None:
-                    raise PermanentAnalysisException('not able to request public-only data currently')
+            service_class = 'public'
+
+        service_url = self.service_collection.get(service_class, None)
+
+        if target != "poke":
+            if service_url is None:
+                raise PermanentAnalysisException(f'dispatcher is not configured to request {service_class} backend')
 
         args = dict(url=service_url+"/api/"+api_version+"/"+target,
                     params=dict(modules=",".join(self.default_modules+modules),
