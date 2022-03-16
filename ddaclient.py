@@ -156,7 +156,7 @@ class Secret(object):
         return requests.auth.HTTPBasicAuth(self._username, self._password)
 
 
-class DDAproduct(object):
+class DDAproduct:
 
     download_ddcache_files_if_necessary = True
 
@@ -347,6 +347,7 @@ class RemoteDDA:
             raise Exception("adapter %s not allowed!" % adapter)
         self._service_url = service_url
 
+
     def prepare_request(self, target, modules=[], assume=[], inject=[], prompt_delegate=True, callback=None):
         log("modules", ",".join(modules))
         log("assume", ",".join(assume))
@@ -360,19 +361,23 @@ class RemoteDDA:
             api_version = "v1.0"
 
         service_url = self.service_url
+
+        if service_url is None:
+            raise RuntimeError('service_url is None')
         
         if any(["integral_all_private" in module for module in modules]): 
             service_class = 'private'
         else: 
             service_class = 'public'
 
-        service_url = self.service_collection.get(service_class, None)
+        self.current_service_url = self.service_collection.get(service_class)
+        
 
         if target != "poke":
             if service_url is None:
                 raise PermanentAnalysisException(f'dispatcher is not configured to request {service_class} backend')
 
-        args = dict(url=service_url+"/api/"+api_version+"/"+target,
+        args = dict(url=self.current_service_url+"/api/"+api_version+"/"+target,
                     params=dict(modules=",".join(self.default_modules+modules),
                                 assume=",".join(self.default_assume+assume),
                                 inject=json.dumps(inject),
@@ -393,7 +398,7 @@ class RemoteDDA:
         self.logger.info("\033[31mdownloading extra file [ %s : %s ] to [ %s ] \033[0m", cached_path, filename, local_fn_modified)
         
         r = requests.get(
-                     f"{self.service_url}/api/2.0/fetch-file",
+                     f"{self.current_service_url}/api/2.0/fetch-file",
                      params=dict(
                          cached_path=cached_path,
                          filename=filename
@@ -456,14 +461,8 @@ class RemoteDDA:
 
             url = p['url']
 
-            if any(["osa11" in module for module in modules]): 
-                logger.info("request will be sent to OSA11")
-                url = url.replace("interface-worker", "interface-worker-osa11")
-            else:
-                logger.info("request will be sent to OSA10")
-
             logger.info("request to pipeline with parameters: %s", p)
-            logger.info("request to pipeline: %s", url+"?" +
+            logger.info("request to pipeline: %s", url + "?" +
                         urllib.parse.urlencode(p['params']))
 
             response = requests.post(
