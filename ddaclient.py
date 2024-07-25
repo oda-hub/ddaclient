@@ -210,7 +210,7 @@ class DDAproduct:
 
         if data is None:
             raise WorkerException(
-                "data is None, the analysis failed unexcplicably")
+                "data is None, the analysis failed unexcplicably, raw response is: "+repr(r))
 
         if not isinstance(r['cached_path'], list):
             raise UnknownDDABackendProblem(
