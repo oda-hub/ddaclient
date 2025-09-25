@@ -320,7 +320,7 @@ def test_spectrum_show_standard_catalog():
     remote=ddaclient.AutoRemoteDDA()
 
     product=remote.query(target="CatForSpectraFromImaging",
-                         modules=["git://ddosa"]+ddosa_data_modules,
+                         modules=["git://ddosa"]+ddosa_modules,
                          assume=[scwsource_module+'.ScWData(input_scwid="'+test_scw+'")',
                                  'ddosa.ImageBins(use_ebins=[(20,40)],use_version="onebin_20_40")',
                                  'ddosa.ImagingConfig(use_SouFit=0,use_DoPart2=1,use_version="soufit0_p2")',
