@@ -1,12 +1,7 @@
 import requests
 import os
-import urllib.request
 import urllib.parse
-import urllib.error
 
-
-import imp
-import ast
 import time
 import json
 
@@ -15,8 +10,6 @@ import traceback
 import re
 
 import logging
-
-from pscolors import render
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -46,6 +39,8 @@ class PermanentAnalysisException(Exception):
     pass
 
 class AnalysisException(Exception):
+    exceptions = []
+
     @classmethod
     def from_dda_analysis_exceptions(cls, analysis_exceptions):
         obj = cls("found analysis exceptions", analysis_exceptions)
@@ -105,6 +100,7 @@ class WorkerException(Exception):
         r = self.__class__.__name__+": "+self.comment
         if self.worker_output:
             r += "\n\nWorker output:\n"+self.worker_output
+        return r
 
     def display(self):
         logger.info(self)
@@ -622,7 +618,7 @@ def main():
                 prompt_delegate=args.prompt_delegate,
             )
         except AnalysisDelegatedException:
-            logger.info(render("{MAGENTA}analysis delegated{/}"))
+            logger.info("\033[0;35manalysis delegated\033[0m")
 
 
 if __name__ == '__main__':
