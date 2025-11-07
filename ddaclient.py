@@ -188,7 +188,8 @@ class DDAproduct:
             log("failed to interpret data \"", r['data'], "\"")
             log(r['data'].__class__)
             log(list(r['data'].keys()))
-            open('tmp_data_dump.json', 'w').write(repr(r['data']))
+            with open(os.path.join(self.remote_dda.logdir, 'tmp_data_dump.json'), 'w') as fd:
+                fd.write(repr(r['data']))
             raise
 
         if r['exceptions'] != [] and r['exceptions'] != '' and r['exceptions'] is not None:
@@ -251,8 +252,9 @@ class DDAproduct:
             logger.warning("no cached path in this object")
 
         key = time.strftime('%Y-%m-%dT%H-%M-%S')
-        json.dump(data, open(f"data_{key}.json", "w"),
-                  sort_keys=True, indent=4, separators=(',', ': '))
+        with open(os.path.join(self.remote_dda.logdir, f"data_{key}.json"), "w") as fd:
+            json.dump(data, fd,
+                      sort_keys=True, indent=4, separators=(',', ': '))
         logger.info(f"jsonifiable data dumped to data_{key}.json")
 
         if local_cached_path is not None:
@@ -293,14 +295,17 @@ class RemoteDDA:
     default_assume = []  # type: list
     # "ddadm.DataSourceConfig(use_store_files=False)"] if not ('SCWDATA_SOURCE_MODULE' in os.environ and os.environ['SCWDATA_SOURCE_MODULE']=='ddadm') else []
 
-    def __init__(self, service_url, ddcache_root_local):
+    def __init__(self, service_url, ddcache_root_local, logdir='.'):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.parse_service_url(service_url)
-        self.ddcache_root_local = ddcache_root_local                
+        self.ddcache_root_local = ddcache_root_local
 
         if ddcache_root_local is None:
             raise Exception(
                 f"unable to setup {self} without ddcache_root_local")
+
+        self.logdir = logdir
+        os.makedirs(logdir, exist_ok=True)
 
         self.secret = Secret()
 
@@ -492,14 +497,16 @@ class RemoteDDA:
         except WorkerException as e:
             logger.error("problem interpretting request: %s", e)
             logger.error("raw content: %s", response.text)
-            open(
-                f"tmp_WorkerException_response_content-{time.strftime('%Y-%m-%dT%H-%M-%S')}.txt", "wt").write(response.text)
+            with open(os.path.join(self.logdir,
+                                   ("tmp_WorkerException_response_content-"
+                                    f"{time.strftime('%Y-%m-%dT%H-%M-%S')}.txt")), "wt") as fd:
+                    fd.write(response.text)
             worker_output = None
             if "result" in response.json():
                 if "output" in response.json()['result']:
                     worker_output = response.json()['result']['output']
-                    open("tmp_response_content_result_output.txt",
-                         "w").write(worker_output)
+                    with open(os.path.join(self.logdir, "tmp_response_content_result_output.txt"), "w") as fd:
+                        fd.write(worker_output)
                     for l in worker_output.splitlines():
                         logger.warning(f"worker >> {l}")
 
@@ -515,16 +522,18 @@ class RemoteDDA:
             traceback.print_exc()
             logger.error("some unknown exception in response %s", repr(e))
 
-            fn = f"tmp_Exception_response_content-{key}.txt"
+            fn = os.path.join(self.logdir, f"tmp_Exception_response_content-{key}.txt")
 
             logger.error("raw response stored to %s", fn)
-            open(fn, "wt").write(response.text)
+            with open(fn, "wt") as fd:
+                fd.write(response.text)
 
-            open(f"tmp_Exception_comment-{key}.json", "wt").write(json.dumps({
-                'exception': repr(e),
-                'tb': traceback.format_stack(),
-                'fexception': traceback.format_exc(),
-            }))
+            with open(os.path.join(self.logdir, f"tmp_Exception_comment-{key}.json"), "wt") as fd:
+                fd.write(json.dumps({
+                    'exception': repr(e),
+                    'tb': traceback.format_stack(),
+                    'fexception': traceback.format_exc(),
+                }))
 
             raise Exception(
                 f"UNKNOWN exception in worker {e}, response was {response.text[:200]}..., stored as {fn}")
