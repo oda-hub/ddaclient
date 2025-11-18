@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=41.0.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ddaclient"
+version = "1.2.0"
+description = "client for data-analysis services"
+license = "CC-BY-NC-SA-4.0"
+authors = [
+    {name = "Volodymyr Savchenko", email = "contact@odahub.io"}
+]
+readme = "README.md"
+dependencies = [
+    "astropy",
+    "requests",
+]
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+test = [
+    "pytest"
+]
+
+[tool.setuptools]
+py-modules = ["ddaclient", "simple_logger"]
+
+[tool.setuptools.package-data]
+"*" = ["*.txt", "*.md", "*.rst", "*.py"]
+
+[project.scripts]
+dda-client = "ddaclient:main"
