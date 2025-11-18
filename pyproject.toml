@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "ddaclient"
 version = "1.2.0"
 description = "client for data-analysis services"
-license = {text = "Creative Commons Attribution-Noncommercial-Share Alike license"}
+license = "CC-BY-NC-SA-4.0"
 authors = [
     {name = "Volodymyr Savchenko", email = "contact@odahub.io"}
 ]
