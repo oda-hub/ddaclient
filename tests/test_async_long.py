@@ -212,7 +212,7 @@ def test_mosaic_delegation_failing():
             product = remote.query(**kwargs)
         except ddaclient.AnalysisDelegatedException as e:
             print(("state:",e.delegation_state))
-        except ddaclient.WorkerException:
+        except ddaclient.WorkerException as e:
             print(("worker exception:",e.__class__))
             break
         except Exception as e:
